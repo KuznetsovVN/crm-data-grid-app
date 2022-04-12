@@ -1,6 +1,6 @@
 import { IColumn } from '@fluentui/react/lib/DetailsList';
 
-export interface IDetailsListDocumentsExampleState {
+export interface IDetailsListDocumentsState {
   columns: IColumn[];
   items: IDocument[];
   selectionDetails: string;

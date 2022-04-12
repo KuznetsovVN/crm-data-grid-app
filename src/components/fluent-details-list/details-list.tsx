@@ -5,52 +5,14 @@ import { Toggle } from '@fluentui/react/lib/Toggle';
 import { Announced } from '@fluentui/react/lib/Announced';
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn } from '@fluentui/react/lib/DetailsList';
 import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
-// import { TooltipHost, initializeIcons } from '@fluentui/react';
 import { initializeIcons } from '@fluentui/react';
-// import { mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { Columns } from './details-list.columns';
 
-import { IDetailsListDocumentsExampleState, IDocument } from './details-list.types';
+import { IDetailsListDocumentsState, IDocument } from './details-list.types';
 import styles from './details-list.module.scss';
 
 initializeIcons();
 
-// const classNames = mergeStyleSets({
-//   fileIconHeaderIcon: {
-//     padding: 0,
-//     fontSize: '16px',
-//   },
-//   fileIconCell: {
-//     textAlign: 'center',
-//     selectors: {
-//       '&:before': {
-//         content: '.',
-//         display: 'inline-block',
-//         verticalAlign: 'middle',
-//         height: '100%',
-//         width: '0px',
-//         visibility: 'hidden',
-//       },
-//     },
-//   },
-//   fileIconImg: {
-//     verticalAlign: 'middle',
-//     maxHeight: '16px',
-//     maxWidth: '16px',
-//   },
-//   controlWrapper: {
-//     display: 'flex',
-//     flexWrap: 'wrap',
-//   },
-//   exampleToggle: {
-//     display: 'inline-block',
-//     marginBottom: '10px',
-//     marginRight: '30px',
-//   },
-//   selectionDetails: {
-//     marginBottom: '20px',
-//   },
-// });
 const controlStyles = {
   root: {
     margin: '0 30px 20px 0',
@@ -58,7 +20,7 @@ const controlStyles = {
   },
 };
 
-export class DetailsListDocumentsExample extends React.Component<{}, IDetailsListDocumentsExampleState> {
+export class DetailsListDocuments extends React.Component<{}, IDetailsListDocumentsState> {
   private _selection: Selection;
   private _allItems: IDocument[];
 
@@ -98,7 +60,6 @@ export class DetailsListDocumentsExample extends React.Component<{}, IDetailsLis
     return (
       <div>
         <div className={styles.controlWrapper}>
-        {/* <div className={classNames.controlWrapper}> */}
           <Toggle
             label="Enable compact mode"
             checked={isCompactMode}
@@ -118,7 +79,6 @@ export class DetailsListDocumentsExample extends React.Component<{}, IDetailsLis
           <TextField label="Filter by name:" onChange={this._onChangeText} styles={controlStyles} />
           <Announced message={`Number of items after filter applied: ${items.length}.`} />
         </div>
-        {/* <div className={classNames.selectionDetails}>{selectionDetails}</div> */}
         <div className={styles.selectionDetails}>{selectionDetails}</div>
         <Announced message={selectionDetails} />
         {announcedMessage ? <Announced message={announcedMessage} /> : undefined}
@@ -159,7 +119,7 @@ export class DetailsListDocumentsExample extends React.Component<{}, IDetailsLis
     );
   }
 
-  public componentDidUpdate(previousProps: any, previousState: IDetailsListDocumentsExampleState) {
+  public componentDidUpdate(previousProps: any, previousState: IDetailsListDocumentsState) {
     if (previousState.isModalSelection !== this.state.isModalSelection && !this.state.isModalSelection) {
       this._selection.setAllSelected(false);
     }
