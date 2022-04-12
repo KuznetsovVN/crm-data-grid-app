@@ -1,0 +1,1 @@
+export { DetailsListDocumentsExample as DetailsList } from './fluent-details-list/details-list';
