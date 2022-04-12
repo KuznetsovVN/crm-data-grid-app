@@ -10,7 +10,7 @@
 
 # production
 /build
-/build-web-resource
+/build-crm-module
 
 # misc
 .DS_Store

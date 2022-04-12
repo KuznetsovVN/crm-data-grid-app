@@ -5,13 +5,13 @@ gulp.task('default', function() {
   console.log('Hello Everyone !!!');
 });
 
-gulp.task('build-web-resource', function() {
+gulp.task('build-crm-module', function() {
   clearBuildPluginFolder();
   var itemsToReplace = copyNecessaryFiles();
   replaceLinksInMainPage(itemsToReplace);
 });
 
-const TARGET_DIR = 'build-web-resource';
+const TARGET_DIR = 'build-crm-module';
 
 function clearBuildPluginFolder() {
   var dir = './' + TARGET_DIR;

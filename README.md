@@ -8,7 +8,7 @@
 - `npm run build`
 - `npm run start`
 
-## Build and Run WebResource
+## Build and Run CRM Module
 
-- `npm run build-web-resource`
-- run the `build-web-resource/index.html` file in your favorite browser
+- `npm run build-crm-module`
+- run the `build-crm-module/index.html` file in your favorite browser

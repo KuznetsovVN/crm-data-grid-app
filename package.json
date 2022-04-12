@@ -1,5 +1,5 @@
 {
-  "name": "crm-data-grid-app",
+  "name": "crm-data-grid-module",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -22,8 +22,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "build-web-resource": "react-scripts build && gulp build-web-resource",
-    "gulp": "gulp build-web-resource",
+    "build-crm-module": "react-scripts build && gulp build-crm-module",
+    "gulp": "gulp build-crm-module",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint-ts": "eslint . --ext .ts --ext .tsx",
