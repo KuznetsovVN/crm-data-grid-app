@@ -11,4 +11,4 @@
 ## Build and Run CRM Module
 
 - `npm run build-crm-module`
-- run the `build-crm-module/index.html` file in your favorite browser
+- run the `build-crm-module/crm-datagrid.html` file in your favorite browser
