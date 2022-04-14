@@ -1,1 +1,1 @@
-export { DetailsListDocuments as DataGrid } from './fluent-details-list/details-list';
+export { FluentUIDetailsList as DataGrid } from './fluentui-details-list/fluentui-details-list';

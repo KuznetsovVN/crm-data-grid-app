@@ -1,26 +1,17 @@
 import * as React from 'react';
 
-import { TextField } from '@fluentui/react/lib/TextField';
-import { Toggle } from '@fluentui/react/lib/Toggle';
-import { Announced } from '@fluentui/react/lib/Announced';
+import { initializeIcons } from '@fluentui/react';
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn } from '@fluentui/react/lib/DetailsList';
 import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
-import { initializeIcons } from '@fluentui/react';
-import { Columns } from './details-list.columns';
+import { Columns } from './fluentui-details-list.columns';
 
-import { IDetailsListDocumentsState, IDocument } from './details-list.types';
-import styles from './details-list.module.scss';
+import { FluentUICommandBar } from '../fluentui-command-bar/fluentui-command-bar';
+import { FluentUISearchBox } from '../fluentui-search-box/fluentui-search-box';
+
+import { IDetailsListDocumentsState, IDocument } from './fluentui-details-list.types';
 
 initializeIcons();
-
-const controlStyles = {
-  root: {
-    margin: '0 30px 20px 0',
-    maxWidth: '300px',
-  },
-};
-
-export class DetailsListDocuments extends React.Component<{}, IDetailsListDocumentsState> {
+export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumentsState> {
   private _selection: Selection;
   private _allItems: IDocument[];
 
@@ -55,34 +46,15 @@ export class DetailsListDocuments extends React.Component<{}, IDetailsListDocume
   }
 
   public render() {
-    const { columns, isCompactMode, items, selectionDetails, isModalSelection, announcedMessage } = this.state;
+    const { columns, isCompactMode, items, selectionDetails } = this.state;
 
     return (
       <div>
-        <div className={styles.controlWrapper}>
-          <Toggle
-            label="Enable compact mode"
-            checked={isCompactMode}
-            onChange={this._onChangeCompactMode}
-            onText="Compact"
-            offText="Normal"
-            styles={controlStyles}
-          />
-          <Toggle
-            label="Enable modal selection"
-            checked={isModalSelection}
-            onChange={this._onChangeModalSelection}
-            onText="Modal"
-            offText="Normal"
-            styles={controlStyles}
-          />
-          <TextField label="Filter by name:" onChange={this._onChangeText} styles={controlStyles} />
-          <Announced message={`Number of items after filter applied: ${items.length}.`} />
-        </div>
-        <div className={styles.selectionDetails}>{selectionDetails}</div>
-        <Announced message={selectionDetails} />
-        {announcedMessage ? <Announced message={announcedMessage} /> : undefined}
-        {isModalSelection ? (
+        {/* <Announced message={selectionDetails} />
+        {announcedMessage ? <Announced message={announcedMessage} /> : undefined} */}
+          <FluentUICommandBar />
+          <FluentUISearchBox />
+
           <MarqueeSelection selection={this._selection}>
             <DetailsList
               items={items}
@@ -102,30 +74,17 @@ export class DetailsListDocuments extends React.Component<{}, IDetailsListDocume
               checkButtonAriaLabel="select row"
             />
           </MarqueeSelection>
-        ) : (
-          <DetailsList
-            items={items}
-            compact={isCompactMode}
-            columns={columns}
-            selectionMode={SelectionMode.none}
-            getKey={this._getKey}
-            setKey="none"
-            layoutMode={DetailsListLayoutMode.justified}
-            isHeaderVisible={true}
-            onItemInvoked={this._onItemInvoked}
-          />
-        )}
       </div>
     );
   }
 
-  public componentDidUpdate(previousProps: any, previousState: IDetailsListDocumentsState) {
+  public componentDidUpdate(previousProps: {}, previousState: IDetailsListDocumentsState) {
     if (previousState.isModalSelection !== this.state.isModalSelection && !this.state.isModalSelection) {
       this._selection.setAllSelected(false);
     }
   }
 
-  private _getKey(item: any, index?: number): string {
+  private _getKey(item: IDocument): string {
     return item.key;
   }
 
@@ -143,7 +102,7 @@ export class DetailsListDocuments extends React.Component<{}, IDetailsListDocume
     });
   };
 
-  private _onItemInvoked(item: any): void {
+  private _onItemInvoked(item: IDocument): void {
     alert(`Item invoked: ${item.name}`);
   }
 
@@ -178,7 +137,7 @@ export class DetailsListDocuments extends React.Component<{}, IDetailsListDocume
         newCol.isSortedDescending = true;
       }
     });
-    const newItems = _copyAndSort(items, currColumn.fieldName!, currColumn.isSortedDescending);
+    const newItems = _copyAndSort(items, currColumn.fieldName || currColumn.name, currColumn.isSortedDescending);
     this.setState({
       columns: newColumns,
       items: newItems,

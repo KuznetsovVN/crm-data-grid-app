@@ -1,26 +1,26 @@
 import { IColumn } from '@fluentui/react/lib/DetailsList';
-import { TooltipHost } from '@fluentui/react';
-import { IDocument } from './details-list.types';
-import styles from './details-list.module.scss';
+// import { TooltipHost } from '@fluentui/react';
+import { IDocument } from './fluentui-details-list.types';
+// import styles from './fluentui-details-list.module.scss';
 
 export const Columns: IColumn[] = [
-  {
-    key: 'column1',
-    name: 'File Type',
-    className: styles.fileIconCell,
-    iconClassName: styles.fileIconHeaderIcon,
-    ariaLabel: 'Column operations for File type, Press to sort on File type',
-    iconName: 'Page',
-    isIconOnly: true,
-    fieldName: 'name',
-    minWidth: 16,
-    maxWidth: 16,
-    onRender: (item: IDocument) => (
-      <TooltipHost content={`${item.fileType} file`}>
-        <img src={item.iconName} className={styles.fileIconImg} alt={`${item.fileType} file icon`} />
-      </TooltipHost>
-    ),
-  },
+  // {
+  //   key: 'column1',
+  //   name: 'File Type',
+  //   className: styles.fileIconCell,
+  //   iconClassName: styles.fileIconHeaderIcon,
+  //   ariaLabel: 'Column operations for File type, Press to sort on File type',
+  //   iconName: 'Page',
+  //   isIconOnly: true,
+  //   fieldName: 'name',
+  //   minWidth: 16,
+  //   maxWidth: 16,
+  //   onRender: (item: IDocument) => (
+  //     <TooltipHost content={`${item.fileType} file`}>
+  //       <img src={item.iconName} className={styles.fileIconImg} alt={`${item.fileType} file icon`} />
+  //     </TooltipHost>
+  //   ),
+  // },
   {
     key: 'column2',
     name: 'Name',
