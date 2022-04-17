@@ -25,6 +25,8 @@ function clearBuildPluginFolder() {
 function copyNecessaryFiles() {
   var itemsToReplace = [];
 
+  fs.copyFileSync('build/crm-iframe-init.js', TARGET_DIR + '/crm-iframe-init.js');
+
   fs.copyFileSync('build/index.html', TARGET_DIR + '/' + TARGET_NAME + '.html');
 
   fs.readdir('build/static/js', (err, files) => {
@@ -33,7 +35,7 @@ function copyNecessaryFiles() {
         fs.copyFileSync('build/static/js/' + file, TARGET_DIR + '/' + TARGET_NAME + '.js');
         itemsToReplace.push(['/static/js/' + file, TARGET_NAME + '.js']);
       }
-    })
+    });
   });
 
   fs.readdir('build/static/css', (err, files) => {
@@ -42,7 +44,7 @@ function copyNecessaryFiles() {
         fs.copyFileSync('build/static/css/' + file, TARGET_DIR + '/' + TARGET_NAME + '.css');
         itemsToReplace.push(['/static/css/' + file, TARGET_NAME + '.css']);
       }
-    })
+    });
   });
 
   return itemsToReplace;

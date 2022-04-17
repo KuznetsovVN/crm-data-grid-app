@@ -2,7 +2,8 @@ import { IColumn } from '@fluentui/react/lib/DetailsList';
 
 export interface IDetailsListDocumentsState {
   columns: IColumn[];
-  items: IDocument[];
+  // items: IDocument[];
+  items: IContactDocument[];
   selectionDetails: string;
   isModalSelection: boolean;
   isCompactMode: boolean;
@@ -20,4 +21,11 @@ export interface IDocument {
   dateModifiedValue: number;
   fileSize: string;
   fileSizeRaw: number;
+}
+
+export interface IContactDocument {
+  contactid: string;
+  fullname: string;
+  emailaddress1: string;
+  telephone1: string;
 }

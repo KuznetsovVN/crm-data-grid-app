@@ -3,28 +3,83 @@ import * as React from 'react';
 import { initializeIcons } from '@fluentui/react';
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn } from '@fluentui/react/lib/DetailsList';
 import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
-import { Columns } from './fluentui-details-list.columns';
+// import { Columns } from './fluentui-details-list.columns';
 
 import { FluentUICommandBar } from '../fluentui-command-bar/fluentui-command-bar';
 import { FluentUISearchBox } from '../fluentui-search-box/fluentui-search-box';
 
-import { IDetailsListDocumentsState, IDocument } from './fluentui-details-list.types';
+import { IDetailsListDocumentsState, IDocument, IContactDocument } from './fluentui-details-list.types';
+
+import { CRMAPI, IXRM, IEntityColumn } from '../../api/crm-helper';
+import { isDocument } from '@testing-library/user-event/dist/utils';
 
 initializeIcons();
+
 export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumentsState> {
   private _selection: Selection;
-  private _allItems: IDocument[];
+  // private _allItems: IDocument[];
+  private _allItems: IContactDocument[];
+  private _columns: IColumn[];
 
   constructor(props: {}) {
     super(props);
 
-    this._allItems = _generateDocuments();
+    this._allItems = [];
+    this._columns = [];
 
-    const columns: IColumn[] = Columns.map((column: IColumn) => {
-      return {
-        ...column,
-        onColumnClick: this._onColumnClick
-      };
+    CRMAPI.onReady((xrm: (IXRM | undefined)) => {
+      if(xrm === undefined) {
+        throw new Error;
+      }
+
+      const meta = xrm.entityMeta;
+
+      if(meta !== undefined) {
+        this._columns = meta?.entityColumns
+          .filter((entityColumn: IEntityColumn) => entityColumn.visible !== false)
+          .map((entityColumn: IEntityColumn) => {
+            return {
+                key: entityColumn.name,
+                name: entityColumn.displayName,
+                fieldName: entityColumn.name,
+                minWidth: 210,
+                maxWidth: 350,
+                isRowHeader: true,
+                isResizable: true,
+                isSorted: entityColumn.primarykey,
+                isSortedDescending: false,
+                sortAscendingAriaLabel: 'Sorted A to Z',
+                sortDescendingAriaLabel: 'Sorted Z to A',
+                data: 'string',
+                isPadded: true,
+                onColumnClick: this._onColumnClick
+              };
+          });
+
+        this.setState({
+          columns: this._columns
+        });
+
+        if(xrm.getData !== undefined) {
+          const fieldNames = this._columns.map(column => column.fieldName ).join(",");
+          xrm.getData('?$select=' + fieldNames, (data: any) => {
+            // console.log(data);
+            data.value.forEach((value:any) => {
+              this._allItems.push({
+                contactid: value.contactid,
+                fullname: value.fullname,
+                emailaddress1: value.emailaddress1,
+                telephone1: value.telephone1
+              });
+            });
+
+            this.setState({
+              // columns: this._columns
+              items: this._allItems
+            });
+          });
+        }
+      }
     });
 
     this._selection = new Selection({
@@ -37,7 +92,7 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
 
     this.state = {
       items: this._allItems,
-      columns: columns,
+      columns: this._columns,
       selectionDetails: this._getSelectionDetails(),
       isModalSelection: true,
       isCompactMode: false,
@@ -88,19 +143,19 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
     return item.key;
   }
 
-  private _onChangeCompactMode = (event: React.MouseEvent<HTMLElement>, checked?: boolean): void => {
-    this.setState({ isCompactMode: checked || false });
-  };
+  // private _onChangeCompactMode = (event: React.MouseEvent<HTMLElement>, checked?: boolean): void => {
+  //   this.setState({ isCompactMode: checked || false });
+  // };
 
-  private _onChangeModalSelection = (event: React.MouseEvent<HTMLElement>, checked?: boolean): void => {
-    this.setState({ isModalSelection: checked || false });
-  };
+  // private _onChangeModalSelection = (event: React.MouseEvent<HTMLElement>, checked?: boolean): void => {
+  //   this.setState({ isModalSelection: checked || false });
+  // };
 
-  private _onChangeText = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, text?: string): void => {
-    this.setState({
-      items: text ? this._allItems.filter(i => i.name.toLowerCase().indexOf(text) > -1) : this._allItems,
-    });
-  };
+  // private _onChangeText = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, text?: string): void => {
+  //   this.setState({
+  //     items: text ? this._allItems.filter(i => i.name.toLowerCase().indexOf(text) > -1) : this._allItems,
+  //   });
+  // };
 
   private _onItemInvoked(item: IDocument): void {
     alert(`Item invoked: ${item.name}`);

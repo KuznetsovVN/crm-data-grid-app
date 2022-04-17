@@ -4,6 +4,8 @@ import { initializeIcons } from '@fluentui/react';
 import { CommandBar, ICommandBarItemProps, ICommandBarStyles } from '@fluentui/react/lib/CommandBar';
 import { IButtonStyles } from '@fluentui/react/lib/Button';
 
+import { CRMAPI } from '../../api/crm-helper';
+
 initializeIcons();
 
 export const FluentUICommandBar: React.FunctionComponent = () => {
@@ -44,11 +46,12 @@ const _items: ICommandBarItemProps[] = [
 const _farItems: ICommandBarItemProps[] = [
   {
     key: 'add',
-    text: 'Добавить запись Контакт.',
+    // text: 'Добавить запись Контакт.',
+    text: 'Добавить запись ' + CRMAPI.getEntityMeta()?.displayName + '.',
     ariaLabel: 'Add',
     iconOnly: true,
     iconProps: { iconName: 'Add' },
-    onClick: () => console.log('Add'),
+    onClick: () => { CRMAPI.openQuickCreate('contact'); console.log('Add'); },
     buttonStyles: _buttonStyles,
   },
   {
@@ -57,7 +60,7 @@ const _farItems: ICommandBarItemProps[] = [
     ariaLabel: 'Table',
     iconOnly: true,
     iconProps: { iconName: 'Table' },
-    onClick: () => console.log('Table'),
+    onClick: () => { CRMAPI.openSubGrid('contact'); console.log('Table'); },
     buttonStyles: _buttonStyles,
   },
 ];
