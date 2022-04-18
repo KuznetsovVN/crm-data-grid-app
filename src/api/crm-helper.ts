@@ -18,45 +18,37 @@ export interface IXRM {
   getAllRecords?: (query : string, callback: any) => void;
 }
 
-const XRM_NAME = 'XRM';
-const XRM_INIT_HANDLER = 'XRM_InitHandler';
 const win : { [key: string] : any } = (window as { [key: string]: any });
+const onReadyCallbacks : { (xrm: IXRM): void; } [] = [];
+let _xrm: IXRM;
 
 win['InitCRMAPI'] = (xrm: IXRM) => {
-  win[XRM_NAME] = xrm;
-  if(win[XRM_INIT_HANDLER] !== undefined) {
-      win[XRM_INIT_HANDLER](xrm);
-  }
+  _xrm = xrm;
+  onReadyCallbacks.forEach((callback) => {
+    callback(xrm);
+  });
 };
-
-function getCRMAPI() {
-  return (window as { [key: string]: any })[XRM_NAME] as IXRM;
-}
 
 export const CRMAPI = {
   onReady : (callback: (xrm? : IXRM) => void) => {
-    win[XRM_INIT_HANDLER] = callback;
+    onReadyCallbacks.push(callback);
   },
   getEntityMeta : () : (IEntityMeta | undefined) => {
-    const api = getCRMAPI();
-    return (api !== undefined) ? api.entityMeta : undefined;
+    return (_xrm !== undefined) ? _xrm.entityMeta : undefined;
   },
   openQuickCreate : (a: any) => {
-    const api = getCRMAPI();
-    if(api !== undefined && api.openQuickCreate !== undefined) {
-      api.openQuickCreate(a);
+    if(_xrm !== undefined && _xrm.openQuickCreate !== undefined) {
+      _xrm.openQuickCreate(a);
     }
   },
   openSubGrid : (a: any) => {
-    const api = getCRMAPI();
-    if(api !== undefined && api.openSubGrid !== undefined) {
-      api.openSubGrid(a);
+    if(_xrm !== undefined && _xrm.openSubGrid !== undefined) {
+      _xrm.openSubGrid(a);
     }
   },
   getAllRecords: (query : string, callback: any) => {
-    const api = getCRMAPI();
-    if(api !== undefined && api.getAllRecords !== undefined) {
-      api.getAllRecords(query, callback);
+    if(_xrm !== undefined && _xrm.getAllRecords !== undefined) {
+      _xrm.getAllRecords(query, callback);
     }
   }
 };
