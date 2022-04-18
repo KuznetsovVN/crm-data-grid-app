@@ -15,8 +15,8 @@ function onload () {
       ]
     };
 
-    if(iFrameWindow.InitCRM !== null) {
-      iFrameWindow.InitCRM({
+    if(iFrameWindow.InitCRMAPI !== null) {
+      iFrameWindow.InitCRMAPI({
         entityMeta: entityMeta,
         openQuickCreate: function() {
           Xrm.Utility.openQuickCreate(entityMeta.name).then(function() { /* TODO */ });

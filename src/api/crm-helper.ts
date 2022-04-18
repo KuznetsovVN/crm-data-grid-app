@@ -22,8 +22,7 @@ const XRM_NAME = 'XRM';
 const XRM_INIT_HANDLER = 'XRM_InitHandler';
 const win : { [key: string] : any } = (window as { [key: string]: any });
 
-win['InitCRM'] = (xrm: IXRM) => {
-  // const win = (window as { [key: string]: any });
+win['InitCRMAPI'] = (xrm: IXRM) => {
   win[XRM_NAME] = xrm;
   if(win[XRM_INIT_HANDLER] !== undefined) {
       win[XRM_INIT_HANDLER](xrm);
