@@ -1,6 +1,5 @@
 export interface IEntityColumn {
   primarykey: boolean,
-  visible: boolean,
   name: string,
   displayName: string,
   type: string
@@ -16,7 +15,7 @@ export interface IXRM {
   entityMeta: IEntityMeta,
   openQuickCreate?: (a: any) => void;
   openSubGrid?: (a: any) => void;
-  getData?: (query : string, callback: any) => void;
+  getAllRecords?: (query : string, callback: any) => void;
 }
 
 const XRM_NAME = 'XRM';
@@ -55,10 +54,10 @@ export const CRMAPI = {
       api.openSubGrid(a);
     }
   },
-  getData: (query : string, callback: any) => {
+  getAllRecords: (query : string, callback: any) => {
     const api = getCRMAPI();
-    if(api !== undefined && api.getData !== undefined) {
-      api.getData(query, callback);
+    if(api !== undefined && api.getAllRecords !== undefined) {
+      api.getAllRecords(query, callback);
     }
   }
 };

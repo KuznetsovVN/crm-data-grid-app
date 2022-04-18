@@ -11,7 +11,7 @@ import { FluentUISearchBox } from '../fluentui-search-box/fluentui-search-box';
 import { IDetailsListDocumentsState, IDocument, IContactDocument } from './fluentui-details-list.types';
 
 import { CRMAPI, IXRM, IEntityColumn } from '../../api/crm-helper';
-import { isDocument } from '@testing-library/user-event/dist/utils';
+// import { isDocument } from '@testing-library/user-event/dist/utils';
 
 initializeIcons();
 
@@ -36,14 +36,14 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
 
       if(meta !== undefined) {
         this._columns = meta?.entityColumns
-          .filter((entityColumn: IEntityColumn) => entityColumn.visible !== false)
+          // .filter((entityColumn: IEntityColumn) => entityColumn.visible !== false)
           .map((entityColumn: IEntityColumn) => {
             return {
                 key: entityColumn.name,
                 name: entityColumn.displayName,
                 fieldName: entityColumn.name,
-                minWidth: 210,
-                maxWidth: 350,
+                minWidth: (entityColumn.primarykey === true) ? 20 : 210,
+                maxWidth: (entityColumn.primarykey === true) ? 30 : 350,
                 isRowHeader: true,
                 isResizable: true,
                 isSorted: entityColumn.primarykey,
@@ -60,11 +60,11 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
           columns: this._columns
         });
 
-        if(xrm.getData !== undefined) {
+        if(xrm.getAllRecords !== undefined) {
           const fieldNames = this._columns.map(column => column.fieldName ).join(",");
-          xrm.getData('?$select=' + fieldNames, (data: any) => {
+          xrm.getAllRecords('?$select=' + fieldNames, (data: any) => {
             // console.log(data);
-            data.value.forEach((value:any) => {
+            data.entities.forEach((value:any) => {
               this._allItems.push({
                 contactid: value.contactid,
                 fullname: value.fullname,
