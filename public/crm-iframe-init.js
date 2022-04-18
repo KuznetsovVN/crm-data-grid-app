@@ -22,8 +22,9 @@ function onload () {
           Xrm.Utility.openQuickCreate(entityMeta.name).then(function() { /* TODO */ });
         },
         openSubGrid: function() {
-          const url = Xrm.Page.context.getClientUrl() + "/main.aspx?etc=2&pagetype=ENTITYLIST&viewid=%7b00000000-0000-0000-00AA-000010001004%7d&viewtype=1039#68839060";
-          window.open(url , null, "popup");
+          // Xrm.Navigation.navigateTo({ pageType: 'entitylist', entityName: 'contact' }); // - doesn't work
+          const query = "?etc=2&pagetype=ENTITYLIST&viewid=%7b00000000-0000-0000-00AA-000010001004%7d&viewtype=1039#68839060";
+          Xrm.Navigation.openUrl("/main.aspx" + query);
         },
         getAllRecords: function(query, callback) {
           Xrm.WebApi.retrieveMultipleRecords(entityMeta.name, query).then(callback);
