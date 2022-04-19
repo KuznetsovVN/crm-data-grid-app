@@ -1,8 +1,9 @@
 export interface IEntityColumn {
-  primarykey: boolean,
   name: string,
   displayName: string,
-  type: string
+  type: string,
+  primarykey?: boolean,
+  isLookup?: boolean
 }
 
 export interface IEntityMeta {

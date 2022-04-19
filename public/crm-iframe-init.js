@@ -11,6 +11,7 @@ function onload () {
         { name : 'contactid', displayName : 'ID', type: 'string', primarykey: true },
         { name : 'fullname', displayName : 'Полное имя', type: 'string' },
         { name : 'emailaddress1', displayName : 'Электронная почта', type: 'string' },
+        { name : 'parentcustomerid', displayName : 'Электронная почта', type: 'string', isLookup: true },
         { name : 'telephone1', displayName : 'Рабочий телефон', type: 'string' },
       ]
     };

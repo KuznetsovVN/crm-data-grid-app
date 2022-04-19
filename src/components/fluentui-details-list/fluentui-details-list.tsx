@@ -38,16 +38,16 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
             return {
                 key: entityColumn.name,
                 name: entityColumn.displayName,
-                fieldName: entityColumn.name,
-                minWidth: (entityColumn.primarykey === true) ? 20 : 210,
-                maxWidth: (entityColumn.primarykey === true) ? 100 : 350,
+                fieldName: entityColumn.isLookup === true ? `_${entityColumn.name}_value` : entityColumn.name,
+                minWidth: (entityColumn.primarykey === true) ? 10 : 210,
+                maxWidth: (entityColumn.primarykey === true) ? 50 : 350,
                 isRowHeader: true,
                 isResizable: true,
-                isSorted: entityColumn.primarykey,
+                isSorted: entityColumn.primarykey === true,
                 isSortedDescending: false,
                 sortAscendingAriaLabel: 'Sorted A to Z',
                 sortDescendingAriaLabel: 'Sorted Z to A',
-                data: 'string',
+                data: entityColumn.type,
                 isPadded: true,
                 onColumnClick: this._onColumnClick
               };
@@ -61,10 +61,11 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
           const fieldNames = this._columns.map(column => column.fieldName ).join(",");
           xrm.getAllRecords('?$select=' + fieldNames, (data: any) => {
             data.entities.forEach((value:any) => {
-
               const item : { [key: string]: any } = {};
               this._columns.forEach((column) => {
-                item[column.fieldName || column.key] = value[column.fieldName || column.key];
+                const ODATA_FORMATTED_POSTFIX = "@OData.Community.Display.V1.FormattedValue";
+                const fieldValue = value[column.fieldName + ODATA_FORMATTED_POSTFIX] || value[column.fieldName || column.key];
+                item[column.fieldName || column.key] = fieldValue;
               });
               this._allItems.push(item);
             });
