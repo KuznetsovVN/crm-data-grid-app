@@ -9,7 +9,7 @@ import { FluentUISearchBox } from '../fluentui-search-box/fluentui-search-box';
 
 import { IDetailsListDocumentsState } from './fluentui-details-list.types';
 
-import { CRMAPI, IXRM, IEntityColumn } from '../../api/crm-helper';
+import { CRMAPI, IEntityMeta, IEntityColumn, IXRM } from '../../api/crm-helper';
 
 initializeIcons();
 
@@ -17,6 +17,7 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
   private _selection: Selection;
   private _allItems: { [key: string]: any }[];
   private _columns: IColumn[];
+  private _xrm : IXRM | undefined;
 
   constructor(props: {}) {
     super(props);
@@ -29,53 +30,9 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
         throw new Error;
       }
 
-      const meta = xrm.entityMeta;
-
-      if(meta !== undefined) {
-        this._columns = meta?.entityColumns
-          // .filter((entityColumn: IEntityColumn) => entityColumn.visible !== false)
-          .map((entityColumn: IEntityColumn) => {
-            return {
-                key: entityColumn.name,
-                name: entityColumn.displayName,
-                fieldName: entityColumn.isLookup === true ? `_${entityColumn.name}_value` : entityColumn.name,
-                minWidth: (entityColumn.primarykey === true) ? 10 : 210,
-                maxWidth: (entityColumn.primarykey === true) ? 50 : 350,
-                isRowHeader: true,
-                isResizable: true,
-                isSorted: entityColumn.primarykey === true,
-                isSortedDescending: false,
-                sortAscendingAriaLabel: 'Sorted A to Z',
-                sortDescendingAriaLabel: 'Sorted Z to A',
-                data: entityColumn.type,
-                isPadded: true,
-                onColumnClick: this._onColumnClick
-              };
-          });
-
-        this.setState({
-          columns: this._columns
-        });
-
-        if(xrm.getAllRecords !== undefined) {
-          const fieldNames = this._columns.map(column => column.fieldName ).join(",");
-          xrm.getAllRecords('?$select=' + fieldNames, (data: any) => {
-            data.entities.forEach((value:any) => {
-              const item : { [key: string]: any } = {};
-              this._columns.forEach((column) => {
-                const ODATA_FORMATTED_POSTFIX = "@OData.Community.Display.V1.FormattedValue";
-                const fieldValue = value[column.fieldName + ODATA_FORMATTED_POSTFIX] || value[column.fieldName || column.key];
-                item[column.fieldName || column.key] = fieldValue;
-              });
-              this._allItems.push(item);
-            });
-
-            this.setState({
-              items: this._allItems
-            });
-          });
-        }
-      }
+      this._xrm = xrm;
+      this.refreshColumns(xrm.entityMeta);
+      this.refreshContent();
     });
 
     this._selection = new Selection({
@@ -90,6 +47,7 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
       items: this._allItems,
       columns: this._columns,
       selectionDetails: this._getSelectionDetails(),
+      searchValue: '',
       isModalSelection: true,
       isCompactMode: false,
       announcedMessage: undefined,
@@ -104,7 +62,7 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
         {/* <Announced message={selectionDetails} />
         {announcedMessage ? <Announced message={announcedMessage} /> : undefined} */}
           <FluentUICommandBar />
-          <FluentUISearchBox />
+          <FluentUISearchBox onSearch={this._onSearch.bind(this)} />
 
           <MarqueeSelection selection={this._selection}>
             <DetailsList
@@ -135,12 +93,81 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
     }
   }
 
+  private refreshColumns(meta : IEntityMeta) {
+    this._columns = meta?.entityColumns
+      // .filter((entityColumn: IEntityColumn) => entityColumn.visible !== false)
+      .map((entityColumn: IEntityColumn) => {
+        return {
+            key: entityColumn.name,
+            name: entityColumn.displayName,
+            fieldName: entityColumn.isLookup === true ? `_${entityColumn.name}_value` : entityColumn.name,
+            minWidth: (entityColumn.primarykey === true) ? 10 : 210,
+            maxWidth: (entityColumn.primarykey === true) ? 50 : 350,
+            isRowHeader: true,
+            isResizable: true,
+            isSorted: entityColumn.primarykey === true,
+            isSortedDescending: false,
+            sortAscendingAriaLabel: 'Sorted A to Z',
+            sortDescendingAriaLabel: 'Sorted Z to A',
+            data: entityColumn.type,
+            isPadded: true,
+            onColumnClick: this._onColumnClick
+          };
+      });
+
+    this.setState({
+      columns: this._columns
+    });
+  }
+
+  private refreshContent() {
+    if(this._xrm && this._xrm.getAllRecords !== undefined) {
+      this._allItems = [];
+
+      const fieldNames = this._columns.map(column => column.fieldName ).join(",");
+      this._xrm.getAllRecords('?$select=' + fieldNames, (data: any) => {
+        data.entities.forEach((value:any) => {
+          const item : { [key: string]: string } = {};
+          this._columns.forEach((column) => {
+            const ODATA_FORMATTED_POSTFIX = "@OData.Community.Display.V1.FormattedValue";
+            const fieldValue = value[column.fieldName + ODATA_FORMATTED_POSTFIX] || value[column.fieldName || column.key];
+            item[column.fieldName || column.key] = fieldValue;
+          });
+
+          if(this.state.searchValue.length > 0) {
+            let add = false;
+            for(const name in item) {
+              add = add || item[name]?.toLowerCase().includes(this.state.searchValue.toLowerCase()) || false;
+            }
+            if(add === true) {
+              this._allItems.push(item);
+            }
+          } else {
+            this._allItems.push(item);
+          }
+        });
+
+        this.setState({
+          items: this._allItems
+        });
+      });
+    }
+  }
+
   private _getKey(item: { [key: string]: any }): string {
     return item.key;
   }
 
   private _onItemInvoked(item: { [key: string]: any }): void {
     alert(`Item invoked: ${item.name}`);
+  }
+
+  private _onSearch(newValue: string) : void {
+    this.setState({
+      searchValue : newValue
+    });
+
+    this.refreshContent();
   }
 
   private _getSelectionDetails(): string {
