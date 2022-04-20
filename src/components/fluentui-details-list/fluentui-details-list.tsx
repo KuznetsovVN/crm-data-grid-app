@@ -9,7 +9,7 @@ import { FluentUISearchBox } from '../fluentui-search-box/fluentui-search-box';
 
 import { IDetailsListDocumentsState } from './fluentui-details-list.types';
 
-import { CRMAPI, IEntityMeta, IEntityColumn, IXRM } from '../../api/crm-helper';
+import { XrmHelper, IEntityMeta, IEntityColumn } from '../../api/crm-helper';
 
 initializeIcons();
 
@@ -17,7 +17,6 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
   private _selection: Selection;
   private _allItems: { [key: string]: any }[];
   private _columns: IColumn[];
-  private _xrm : IXRM | undefined;
 
   constructor(props: {}) {
     super(props);
@@ -25,13 +24,8 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
     this._allItems = [];
     this._columns = [];
 
-    CRMAPI.onReady((xrm: (IXRM | undefined)) => {
-      if(xrm === undefined) {
-        throw new Error;
-      }
-
-      this._xrm = xrm;
-      this.refreshColumns(xrm.entityMeta);
+    XrmHelper.onReady(() => {
+      this.refreshColumns();
       this.refreshContent();
     });
 
@@ -93,23 +87,28 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
     }
   }
 
-  private refreshColumns(meta : IEntityMeta) {
-    this._columns = meta?.entityColumns
+  private refreshColumns() {
+    const meta = XrmHelper.getEntityMeta();
+
+    if(meta === undefined)
+      return;
+
+    this._columns = meta.columns
       // .filter((entityColumn: IEntityColumn) => entityColumn.visible !== false)
       .map((entityColumn: IEntityColumn) => {
         return {
             key: entityColumn.name,
             name: entityColumn.displayName,
             fieldName: entityColumn.isLookup === true ? `_${entityColumn.name}_value` : entityColumn.name,
-            minWidth: (entityColumn.primarykey === true) ? 10 : 210,
-            maxWidth: (entityColumn.primarykey === true) ? 50 : 350,
+            minWidth: 10,
+            maxWidth: entityColumn.width,
             isRowHeader: true,
             isResizable: true,
             isSorted: entityColumn.primarykey === true,
             isSortedDescending: false,
             sortAscendingAriaLabel: 'Sorted A to Z',
             sortDescendingAriaLabel: 'Sorted Z to A',
-            data: entityColumn.type,
+            data: 'string',
             isPadded: true,
             onColumnClick: this._onColumnClick
           };
@@ -121,37 +120,37 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
   }
 
   private refreshContent() {
-    if(this._xrm && this._xrm.getAllRecords !== undefined) {
-      this._allItems = [];
+    this._allItems = [];
+    const fieldNames = this._columns.map(column => column.fieldName ).join(",");
+    XrmHelper.getData('?$select=' + fieldNames, (data: any) => {
+      if(data === undefined)
+        return;
 
-      const fieldNames = this._columns.map(column => column.fieldName ).join(",");
-      this._xrm.getAllRecords('?$select=' + fieldNames, (data: any) => {
-        data.entities.forEach((value:any) => {
-          const item : { [key: string]: string } = {};
-          this._columns.forEach((column) => {
-            const ODATA_FORMATTED_POSTFIX = "@OData.Community.Display.V1.FormattedValue";
-            const fieldValue = value[column.fieldName + ODATA_FORMATTED_POSTFIX] || value[column.fieldName || column.key];
-            item[column.fieldName || column.key] = fieldValue;
-          });
+      data.entities.forEach((value:any) => {
+        const item : { [key: string]: string } = {};
+        this._columns.forEach((column) => {
+          const ODATA_FORMATTED_POSTFIX = "@OData.Community.Display.V1.FormattedValue";
+          const fieldValue = value[column.fieldName + ODATA_FORMATTED_POSTFIX] || value[column.fieldName || column.key];
+          item[column.fieldName || column.key] = fieldValue;
+        });
 
-          if(this.state.searchValue.length > 0) {
-            let add = false;
-            for(const name in item) {
-              add = add || item[name]?.toLowerCase().includes(this.state.searchValue.toLowerCase()) || false;
-            }
-            if(add === true) {
-              this._allItems.push(item);
-            }
-          } else {
+        if(this.state.searchValue.length > 0) {
+          let add = false;
+          for(const name in item) {
+            add = add || item[name]?.toLowerCase().includes(this.state.searchValue.toLowerCase()) || false;
+          }
+          if(add === true) {
             this._allItems.push(item);
           }
-        });
-
-        this.setState({
-          items: this._allItems
-        });
+        } else {
+          this._allItems.push(item);
+        }
       });
-    }
+
+      this.setState({
+        items: this._allItems
+      });
+    });
   }
 
   private _getKey(item: { [key: string]: any }): string {

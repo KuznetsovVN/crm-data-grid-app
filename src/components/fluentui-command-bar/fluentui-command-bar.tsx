@@ -4,24 +4,20 @@ import { initializeIcons } from '@fluentui/react';
 import { CommandBar, ICommandBarItemProps, ICommandBarStyles } from '@fluentui/react/lib/CommandBar';
 import { IButtonStyles } from '@fluentui/react/lib/Button';
 
-import { CRMAPI, IXRM } from '../../api/crm-helper';
+import { XrmHelper, IXrmAPI } from '../../api/crm-helper';
 
 initializeIcons();
 
 export const FluentUICommandBar: React.FunctionComponent = () => {
   const [ state, setState ] = React.useState({
-    name: CRMAPI.getEntityMeta()?.name || '',
-    displayName: CRMAPI.getEntityMeta()?.displayName || '',
+    name: XrmHelper.getEntityMeta()?.name || '',
+    displayName: XrmHelper.getEntityMeta()?.displayName || '',
   });
 
-  CRMAPI.onReady((xrm: (IXRM | undefined)) => {
-    if(xrm === undefined) {
-      throw new Error;
-    }
-
+  XrmHelper.onReady(() => {
     setState({
-      name: CRMAPI.getEntityMeta()?.name || '',
-      displayName: CRMAPI.getEntityMeta()?.displayName || '',
+      name: XrmHelper.getEntityMeta()?.name || '',
+      displayName: XrmHelper.getEntityMeta()?.displayName || '',
     });
   });
 
@@ -43,8 +39,8 @@ export const FluentUICommandBar: React.FunctionComponent = () => {
   const _items: ICommandBarItemProps[] = [
     {
       key: 'caption',
-      text: CRMAPI.getEntityMeta()?.displayName,
-      ariaLabel: CRMAPI.getEntityMeta()?.displayName,
+      text: XrmHelper.getEntityMeta()?.displayName,
+      ariaLabel: XrmHelper.getEntityMeta()?.displayName,
       disabled: true,
       buttonStyles: _buttonStyles,
     }
@@ -57,7 +53,7 @@ export const FluentUICommandBar: React.FunctionComponent = () => {
       ariaLabel: 'Add',
       iconOnly: true,
       iconProps: { iconName: 'Add' },
-      onClick: () => { CRMAPI.openQuickCreate(state.name); console.log('Add'); },
+      onClick: () => { XrmHelper.openQuickCreate(state.name); },
       buttonStyles: _buttonStyles,
     },
     {
@@ -66,7 +62,7 @@ export const FluentUICommandBar: React.FunctionComponent = () => {
       ariaLabel: 'Table',
       iconOnly: true,
       iconProps: { iconName: 'Table' },
-      onClick: () => { CRMAPI.openSubGrid(state.name); console.log('Table'); },
+      onClick: () => { XrmHelper.openSubGrid(); },
       buttonStyles: _buttonStyles,
     },
   ];
