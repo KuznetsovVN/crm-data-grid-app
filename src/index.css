@@ -25,3 +25,8 @@ code {
     "Courier New",
     monospace;
 }
+
+/* hack for FluetnUI DetailsList check cell */
+.ms-DetailsRow-check {
+  width: 34px;
+}

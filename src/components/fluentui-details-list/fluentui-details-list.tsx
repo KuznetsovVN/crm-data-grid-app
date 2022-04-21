@@ -1,15 +1,16 @@
 import * as React from 'react';
 
 import { initializeIcons } from '@fluentui/react';
-import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn } from '@fluentui/react/lib/DetailsList';
+import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn, CheckboxVisibility } from '@fluentui/react/lib/DetailsList';
 import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
 
 import { FluentUICommandBar } from '../fluentui-command-bar/fluentui-command-bar';
 import { FluentUISearchBox } from '../fluentui-search-box/fluentui-search-box';
 
-import { IDetailsListDocumentsState } from './fluentui-details-list.types';
+import { IDetailsListDocumentsState, } from './fluentui-details-list.types';
+import styles from './fluentui-details-list.module.scss';
 
-import { XrmHelper, IEntityMeta, IEntityColumn } from '../../api/crm-helper';
+import { XrmHelper, IEntityColumn } from '../../api/crm-helper';
 
 initializeIcons();
 
@@ -43,7 +44,7 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
       selectionDetails: this._getSelectionDetails(),
       searchValue: '',
       isModalSelection: true,
-      isCompactMode: false,
+      isCompactMode: true,
       announcedMessage: undefined,
     };
   }

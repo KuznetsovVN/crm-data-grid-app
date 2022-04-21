@@ -9,8 +9,10 @@ export interface IEntityColumn {
 
 export interface IEntityMeta {
   name: string,
+  setName: string,
   object: number,
   displayName: string,
+  displayCollectionName: string,
   viewName: string,
   columns: IEntityColumn[]
 }
@@ -19,6 +21,7 @@ export interface IXrmAPI {
   entityViewGuid: string,
   lookupFields: string[],
   displayNameDict: { [key: string]: string },
+  getEntityMetadata: (entityName : string, atributes : string[]) => Promise<any>;
   retrieveRecord: (entityLogicalName: string, id: string, options: string) => Promise<any>;
   retrieveMultipleRecords: (entityName : string, query : string) => Promise<any>;
   openQuickCreate: (entityName: string) => any;
@@ -37,8 +40,10 @@ export const XrmHelper = (function() {
 
   let _viewName: string;
   let _entityName: string;
+  let _entitySetName: string;
   let _entityViewGuid: string;
   let _entityDisplayName: string;
+  let _entityDisplayCollectionName: string;
   let _entityObject: number;
   let _columns: IEntityColumn[];
 
@@ -50,16 +55,17 @@ export const XrmHelper = (function() {
       _entityViewGuid = _xrmAPI.entityViewGuid;
 
       _xrmAPI.retrieveRecord('savedquery', _xrmAPI.entityViewGuid, '$select=name,fetchxml,layoutjson,returnedtypecode')
-        .then(function(data: any) {
-          _viewName = data.name;
-          _entityName = data.returnedtypecode;
-          _entityDisplayName = data['returnedtypecode@OData.Community.Display.V1.FormattedValue'];
+        .then(function(record: any) {
+
+          _entityName = record.returnedtypecode;
+          _viewName = record.name;
+
           _columns = [];
 
           // const fetch : Document = (new DOMParser()).parseFromString(data.fetchxml, 'text/xml');
           // const entityElem = fetch.getElementsByTagName("fetch")[0].getElementsByTagName("entity")[0];
 
-          const layout = JSON.parse(data.layoutjson);
+          const layout = JSON.parse(record.layoutjson);
           _entityObject = layout.Object;
           const primary = layout.Rows[0].Id;
 
@@ -82,10 +88,17 @@ export const XrmHelper = (function() {
             _columns.push(column);
           }
 
-          // It need call after initialization metadata
-          onReadyCallbacks.forEach((callback) => {
-            callback(_xrmAPI);
-          });
+          _xrmAPI.getEntityMetadata(_entityName, [])
+            .then(function(metadata) {
+              _entitySetName = metadata.EntitySetName;
+              _entityDisplayName = metadata.DisplayName;
+              _entityDisplayCollectionName = metadata.DisplayCollectionName;
+
+              // It need call after initialization metadata
+              onReadyCallbacks.forEach((callback) => {
+                callback(_xrmAPI);
+              });
+            });
       });
     },
     onReady : (callback: () => void) => {
@@ -97,8 +110,10 @@ export const XrmHelper = (function() {
 
       return {
         name: _entityName,
+        setName: _entitySetName,
         object: _entityObject,
         displayName: _entityDisplayName,
+        displayCollectionName: _entityDisplayCollectionName,
         viewName: _viewName,
         columns: _columns
       };

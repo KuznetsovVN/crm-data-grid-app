@@ -13,6 +13,7 @@ function onload () {
         entityViewGuid: ENTITY_VIEW_GUID,
         lookupFields: LOOKUP_FIELDS,
         displayNameDict: DISPLAY_NAME_DICT,
+        getEntityMetadata: Xrm.Utility.getEntityMetadata,
         retrieveRecord: Xrm.WebApi.retrieveRecord,
         retrieveMultipleRecords: Xrm.WebApi.retrieveMultipleRecords,
         openQuickCreate: Xrm.Utility.openQuickCreate,

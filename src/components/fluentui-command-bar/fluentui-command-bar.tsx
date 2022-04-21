@@ -4,7 +4,7 @@ import { initializeIcons } from '@fluentui/react';
 import { CommandBar, ICommandBarItemProps, ICommandBarStyles } from '@fluentui/react/lib/CommandBar';
 import { IButtonStyles } from '@fluentui/react/lib/Button';
 
-import { XrmHelper, IXrmAPI } from '../../api/crm-helper';
+import { XrmHelper } from '../../api/crm-helper';
 
 initializeIcons();
 
@@ -12,12 +12,14 @@ export const FluentUICommandBar: React.FunctionComponent = () => {
   const [ state, setState ] = React.useState({
     name: XrmHelper.getEntityMeta()?.name || '',
     displayName: XrmHelper.getEntityMeta()?.displayName || '',
+    displayNameCollection: XrmHelper.getEntityMeta()?.displayCollectionName || '',
   });
 
   XrmHelper.onReady(() => {
     setState({
       name: XrmHelper.getEntityMeta()?.name || '',
       displayName: XrmHelper.getEntityMeta()?.displayName || '',
+      displayNameCollection: XrmHelper.getEntityMeta()?.displayCollectionName || '',
     });
   });
 
@@ -39,8 +41,8 @@ export const FluentUICommandBar: React.FunctionComponent = () => {
   const _items: ICommandBarItemProps[] = [
     {
       key: 'caption',
-      text: XrmHelper.getEntityMeta()?.displayName,
-      ariaLabel: XrmHelper.getEntityMeta()?.displayName,
+      text: state.displayNameCollection,
+      ariaLabel: state.displayNameCollection,
       disabled: true,
       buttonStyles: _buttonStyles,
     }
