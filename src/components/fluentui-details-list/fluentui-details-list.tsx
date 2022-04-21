@@ -100,7 +100,7 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
         return {
             key: entityColumn.name,
             name: entityColumn.displayName,
-            fieldName: entityColumn.isLookup === true ? `_${entityColumn.name}_value` : entityColumn.name,
+            fieldName: entityColumn.fieldName,
             minWidth: 10,
             maxWidth: entityColumn.width,
             isRowHeader: true,
@@ -122,8 +122,7 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
 
   private refreshContent() {
     this._allItems = [];
-    const fieldNames = this._columns.map(column => column.fieldName ).join(",");
-    XrmHelper.getData('?$select=' + fieldNames, (data: any) => {
+    XrmHelper.getDataByFetchXml((data: any) => {
       if(data === undefined)
         return;
 

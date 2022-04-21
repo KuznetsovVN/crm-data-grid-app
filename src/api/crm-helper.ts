@@ -1,6 +1,6 @@
 export interface IEntityColumn {
   name: string,
-  relatedEntityName: string,
+  fieldName: string,
   displayName: string,
   width: number;
   primarykey: boolean,
@@ -62,27 +62,34 @@ export const XrmHelper = (function() {
 
           _columns = [];
 
-          // const fetch : Document = (new DOMParser()).parseFromString(data.fetchxml, 'text/xml');
-          // const entityElem = fetch.getElementsByTagName("fetch")[0].getElementsByTagName("entity")[0];
-
           const layout = JSON.parse(record.layoutjson);
           _entityObject = layout.Object;
           const primary = layout.Rows[0].Id;
 
           const cells = layout.Rows[0].Cells;
           for (let i = 0; i < cells.length; i++) {
-            const name = cells[i].Name;
-            if(name.split('.').length > 1) {
-              continue; // TODO: link-entity
+            let name = cells[i].Name;
+            let displayName = (_xrmAPI.displayNameDict[name] || name);
+            const isLookup = _xrmAPI.lookupFields.indexOf(name) !== -1;
+            const isLinkEntity = name.split('.').length > 1;
+            const fieldName = isLookup ? `_${name}_value` : name;
+
+            if(isLinkEntity) {
+              name = name.split('.').at(-1);
+              displayName = (_xrmAPI.displayNameDict[name] || name);
+              const relatedEntityName = cells[i].RelatedEntityName;
+              if(relatedEntityName) {
+                displayName += ` ( ${_xrmAPI.displayNameDict[relatedEntityName]} )`;
+              }
             }
 
             const column = {
               name: name,
-              relatedEntityName: cells[i].RelatedEntityName,
-              displayName: _xrmAPI.displayNameDict[name] || name,
+              fieldName: fieldName,
+              displayName: displayName,
               width: cells[i].Width,
               primarykey: name === primary,
-              isLookup: _xrmAPI.lookupFields.indexOf(name) !== -1
+              isLookup: isLookup
             };
 
             _columns.push(column);
@@ -138,6 +145,18 @@ export const XrmHelper = (function() {
       }
 
       _xrmAPI.retrieveMultipleRecords(_entityName, query).then(callback);
+    },
+    getDataByFetchXml: (callback: any) => {
+      if(_xrmAPI === undefined) {
+        callback(undefined);
+        return;
+      }
+
+      _xrmAPI.retrieveRecord("savedquery", _entityViewGuid, "$select=fetchxml").then(function(data) {
+        _xrmAPI.retrieveMultipleRecords(_entityName, "?fetchXml=" + encodeURIComponent(data.fetchxml)).then(function(result) {
+          callback(result);
+        });
+      });
     }
   };
 })();
