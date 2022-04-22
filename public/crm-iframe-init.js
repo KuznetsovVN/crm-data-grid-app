@@ -23,7 +23,8 @@ function onload () {
         retrieveRecord: Xrm.WebApi.retrieveRecord,
         retrieveMultipleRecords: Xrm.WebApi.retrieveMultipleRecords,
         openQuickCreate: Xrm.Utility.openQuickCreate,
-        openSubGrid: Xrm.Navigation.openUrl
+        openSubGrid: Xrm.Navigation.openUrl,
+        openForm: Xrm.Navigation.openForm,
       });
     }
   };

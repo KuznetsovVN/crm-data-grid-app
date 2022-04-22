@@ -1,22 +1,25 @@
 import * as React from 'react';
 
 import { initializeIcons } from '@fluentui/react';
-import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn, CheckboxVisibility } from '@fluentui/react/lib/DetailsList';
+import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn } from '@fluentui/react/lib/DetailsList';
+import { Link } from '@fluentui/react/lib/Link';
 import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
 
 import { FluentUICommandBar } from '../fluentui-command-bar/fluentui-command-bar';
 import { FluentUISearchBox } from '../fluentui-search-box/fluentui-search-box';
 
-import { IDetailsListDocumentsState, } from './fluentui-details-list.types';
-import styles from './fluentui-details-list.module.scss';
+import { IDetailsListDocumentsState, IDetailsListItem } from './fluentui-details-list.types';
 
 import { XrmHelper, IEntityColumn } from '../../api/crm-helper';
+
+const ODATA_FORMATTED_POSTFIX = "@OData.Community.Display.V1.FormattedValue";
+const ODATA_LOOKUPLOGICALNAME = "@Microsoft.Dynamics.CRM.lookuplogicalname";
 
 initializeIcons();
 
 export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumentsState> {
   private _selection: Selection;
-  private _allItems: { [key: string]: any }[];
+  private _allItems: { [key: string]: IDetailsListItem }[];
   private _columns: IColumn[];
 
   constructor(props: {}) {
@@ -94,25 +97,37 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
     if(meta === undefined)
       return;
 
+    const margin = 44; // gridCell { margin-left: 12px, margin-right: 32px }
+
     this._columns = meta.columns
-      // .filter((entityColumn: IEntityColumn) => entityColumn.visible !== false)
+      .filter((entityColumn: IEntityColumn) => entityColumn.isHidden !== true)
       .map((entityColumn: IEntityColumn) => {
         return {
             key: entityColumn.name,
             name: entityColumn.displayName,
             fieldName: entityColumn.fieldName,
             minWidth: 10,
-            maxWidth: entityColumn.width,
+            maxWidth: Math.abs(entityColumn.width - margin),
+            currentWidth: Math.abs(entityColumn.width - margin),
             isRowHeader: true,
             isResizable: true,
-            isSorted: entityColumn.primarykey === true,
+            isSorted: entityColumn.isPrimary === true,
             isSortedDescending: false,
             sortAscendingAriaLabel: 'Sorted A to Z',
             sortDescendingAriaLabel: 'Sorted Z to A',
             data: 'string',
             isPadded: true,
-            onColumnClick: this._onColumnClick
-          };
+            onColumnClick: this._onColumnClick,
+            onRender: (item, index, column) => (
+              <div>
+                {
+                  entityColumn.hasLink
+                    ? <Link key={item} onClick={() => { const linkItem = item[column?.fieldName ?? '']; XrmHelper.openForm(linkItem.entityName, linkItem.value); } }>{item[column?.fieldName || ''].text}</Link>
+                    : item[column?.fieldName || ''].text
+                }
+              </div>
+            ),
+          } as IColumn;
       });
 
     this.setState({
@@ -122,22 +137,47 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
 
   private refreshContent() {
     this._allItems = [];
+
     XrmHelper.getDataByFetchXml((data: any) => {
       if(data === undefined)
         return;
 
-      data.entities.forEach((value:any) => {
-        const item : { [key: string]: string } = {};
-        this._columns.forEach((column) => {
-          const ODATA_FORMATTED_POSTFIX = "@OData.Community.Display.V1.FormattedValue";
-          const fieldValue = value[column.fieldName + ODATA_FORMATTED_POSTFIX] || value[column.fieldName || column.key];
-          item[column.fieldName || column.key] = fieldValue;
+      const meta = XrmHelper.getEntityMeta();
+      if(meta?.columns === undefined)
+        return;
+
+      data.entities.forEach((data : any) => {
+        const item : { [key: string]: IDetailsListItem } = {};
+        this._columns.forEach((column : IColumn) => {
+          const metaColumn = meta.columns.find((entityColumn) => entityColumn.fieldName === column.fieldName);
+          if(!metaColumn) { throw new Error('meta column not found'); }
+
+          const fieldName = column.fieldName ?? column.name;
+          const fieldText = data[column.fieldName + ODATA_FORMATTED_POSTFIX] ?? data[fieldName];
+          let fieldValue = fieldText;
+          let entityName;
+
+          if(metaColumn.hasLink) {
+            if(metaColumn.isLookup === true) {
+              fieldValue = data[metaColumn.fieldName];
+              entityName = data[column.fieldName + ODATA_LOOKUPLOGICALNAME];
+            } else {
+              fieldValue = data[meta.columns.find((entityColumn) => entityColumn.isPrimary === true)?.fieldName ?? column.name];
+              entityName = meta.name;
+            }
+          }
+
+          item[fieldName] = {
+            text: fieldText,
+            value: fieldValue,
+            entityName: entityName
+          } as IDetailsListItem;
         });
 
         if(this.state.searchValue.length > 0) {
           let add = false;
           for(const name in item) {
-            add = add || item[name]?.toLowerCase().includes(this.state.searchValue.toLowerCase()) || false;
+            add = add || item[name].text?.toLowerCase().includes(this.state.searchValue.toLowerCase()) || false;
           }
           if(add === true) {
             this._allItems.push(item);

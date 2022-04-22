@@ -3,8 +3,10 @@ export interface IEntityColumn {
   fieldName: string,
   displayName: string,
   width: number;
-  primarykey: boolean,
-  isLookup: boolean
+  isPrimary?: boolean,
+  isLookup?: boolean,
+  isHidden?: boolean,
+  hasLink?: boolean,
 }
 
 export interface IEntityMeta {
@@ -26,6 +28,7 @@ export interface IXrmAPI {
   retrieveMultipleRecords: (entityName : string, query : string) => Promise<any>;
   openQuickCreate: (entityName: string) => any;
   openSubGrid: (query: string) => void; // "/main.aspx" + query
+  openForm: (options: { entityName : string, entityId : string}) => Promise<any>;
 }
 
 const win : { [key: string] : any } = (window as { [key: string]: any });
@@ -66,6 +69,16 @@ export const XrmHelper = (function() {
           _entityObject = layout.Object;
           const primary = layout.Rows[0].Id;
 
+          /* add hidden primary entity field */
+          _columns.push({
+            name: primary,
+            fieldName: primary,
+            displayName: primary,
+            width: 0,
+            isPrimary: true,
+            isHidden: true,
+          });
+
           const cells = layout.Rows[0].Cells;
           for (let i = 0; i < cells.length; i++) {
             let name = cells[i].Name;
@@ -73,6 +86,7 @@ export const XrmHelper = (function() {
             const isLookup = _xrmAPI.lookupFields.indexOf(name) !== -1;
             const isLinkEntity = name.split('.').length > 1;
             const fieldName = isLookup ? `_${name}_value` : name;
+            const hasLink = i === 0 || isLookup;
 
             if(isLinkEntity) {
               name = name.split('.').at(-1);
@@ -83,13 +97,13 @@ export const XrmHelper = (function() {
               }
             }
 
-            const column = {
+            const column : IEntityColumn = {
               name: name,
               fieldName: fieldName,
               displayName: displayName,
               width: cells[i].Width,
-              primarykey: name === primary,
-              isLookup: isLookup
+              isLookup: isLookup,
+              hasLink: hasLink,
             };
 
             _columns.push(column);
@@ -156,6 +170,12 @@ export const XrmHelper = (function() {
         _xrmAPI.retrieveMultipleRecords(_entityName, "?fetchXml=" + encodeURIComponent(data.fetchxml)).then(function(result) {
           callback(result);
         });
+      });
+    },
+    openForm: (entityName : string, entityId : string) => {
+      return _xrmAPI.openForm({
+        entityName: entityName,
+        entityId: entityId
       });
     }
   };

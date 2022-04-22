@@ -9,3 +9,9 @@ export interface IDetailsListDocumentsState {
   isCompactMode: boolean;
   announcedMessage?: string;
 }
+
+export interface IDetailsListItem {
+  text: string;
+  value: string;
+  entityName: string;
+}
