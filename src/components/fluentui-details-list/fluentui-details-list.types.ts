@@ -1,7 +1,7 @@
 import { IColumn } from '@fluentui/react/lib/DetailsList';
 
 export interface IDetailsListDocumentsProps {
-  getSelectedItemIdsCallback: (ids : string[]) => string[];
+  getSelectedItemIDsCallback: (ids : string[]) => string[];
 }
 
 export interface IDetailsListDocumentsState {

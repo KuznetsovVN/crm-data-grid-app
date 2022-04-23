@@ -8,7 +8,7 @@ const win : { [key: string] : any } = (window as { [key: string]: any });
 
 ReactDOM.render(
   <React.StrictMode>
-    <DataGrid getSelectedItemIdsCallback={win['_getSelectedItemKeysCallback']} />
+    <DataGrid getSelectedItemIDsCallback={win['_getSelectedItemKeysCallback']} />
   </React.StrictMode>,
   document.getElementById('root')
 );

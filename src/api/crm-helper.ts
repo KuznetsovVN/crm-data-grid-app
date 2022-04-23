@@ -37,7 +37,7 @@ win['InitXrmAPI'] = (xrmAPI: IXrmAPI) => {
   XrmHelper.init(xrmAPI);
 };
 
-win['GetSelectedItemIds'] = () => {
+win['GetSelectedItemIDs'] = () => {
   return win['_selectedItemIds'];
 };
 

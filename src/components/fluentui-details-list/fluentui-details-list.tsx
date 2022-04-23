@@ -37,7 +37,7 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
       onSelectionChanged: () => {
         const selectionKeys : string[] = this._getSelectionKeys();
         const selectionDetails : string = selectionKeys.join(',');
-        this.props.getSelectedItemIdsCallback(selectionKeys);
+        this.props.getSelectedItemIDsCallback(selectionKeys);
         this.setState({
           selectionDetails: selectionDetails,
         });
