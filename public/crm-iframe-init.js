@@ -29,3 +29,11 @@ function onload () {
     }
   };
 }
+
+function getGridSelection() {
+  const iFrameElem = Xrm.Page.getControl("IFRAME_kuzn_crm_datagrid_html");
+  var iFrameWindow = iFrameElem.getObject().contentWindow;
+  if(iFrameWindow.GetSelectedItemIds !== null) {
+    return iFrameWindow.GetSelectedItemIds();
+  }
+}

@@ -4,9 +4,11 @@ import './index.css';
 import { DataGrid } from './components';
 import reportWebVitals from './reportWebVitals';
 
+const win : { [key: string] : any } = (window as { [key: string]: any });
+
 ReactDOM.render(
   <React.StrictMode>
-    <DataGrid />
+    <DataGrid getSelectedItemIdsCallback={win['_getSelectedItemKeysCallback']} />
   </React.StrictMode>,
   document.getElementById('root')
 );

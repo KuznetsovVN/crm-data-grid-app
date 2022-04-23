@@ -37,6 +37,17 @@ win['InitXrmAPI'] = (xrmAPI: IXrmAPI) => {
   XrmHelper.init(xrmAPI);
 };
 
+win['GetSelectedItemIds'] = () => {
+  return win['_selectedItemIds'];
+};
+
+win['_selectedItemIds'] = [];
+
+win['_getSelectedItemKeysCallback'] = (ids : string[]) => {
+  win['_selectedItemIds'] = ids;
+};
+
+
 export const XrmHelper = (function() {
   let _xrmAPI: IXrmAPI;
   const onReadyCallbacks : { (xrm: IXrmAPI): void; } [] = [];

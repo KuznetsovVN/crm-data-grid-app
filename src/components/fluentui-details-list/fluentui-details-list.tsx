@@ -8,7 +8,7 @@ import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
 import { FluentUICommandBar } from '../fluentui-command-bar/fluentui-command-bar';
 import { FluentUISearchBox } from '../fluentui-search-box/fluentui-search-box';
 
-import { IDetailsListDocumentsState, IDetailsListItem } from './fluentui-details-list.types';
+import { IDetailsListDocumentsProps, IDetailsListDocumentsState, IDetailsListItem } from './fluentui-details-list.types';
 
 import { XrmHelper, IEntityColumn } from '../../api/crm-helper';
 
@@ -17,12 +17,12 @@ const ODATA_LOOKUPLOGICALNAME = "@Microsoft.Dynamics.CRM.lookuplogicalname";
 
 initializeIcons();
 
-export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumentsState> {
+export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsProps, IDetailsListDocumentsState> {
   private _selection: Selection;
-  private _allItems: { [key: string]: IDetailsListItem }[];
+  private _allItems: { [key: string]: IDetailsListItem | string }[];
   private _columns: IColumn[];
 
-  constructor(props: {}) {
+  constructor(props: IDetailsListDocumentsProps) {
     super(props);
 
     this._allItems = [];
@@ -35,8 +35,11 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
 
     this._selection = new Selection({
       onSelectionChanged: () => {
+        const selectionKeys : string[] = this._getSelectionKeys();
+        const selectionDetails : string = selectionKeys.join(',');
+        this.props.getSelectedItemIdsCallback(selectionKeys);
         this.setState({
-          selectionDetails: this._getSelectionDetails(),
+          selectionDetails: selectionDetails,
         });
       },
     });
@@ -44,7 +47,7 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
     this.state = {
       items: this._allItems,
       columns: this._columns,
-      selectionDetails: this._getSelectionDetails(),
+      selectionDetails: this._getSelectionKeys().join(','),
       searchValue: '',
       isModalSelection: true,
       isCompactMode: true,
@@ -147,7 +150,12 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
         return;
 
       data.entities.forEach((data : any) => {
-        const item : { [key: string]: IDetailsListItem } = {};
+        const entityId = data[meta.columns.find((entityColumn) => entityColumn.isPrimary === true)?.fieldName ?? ''];
+
+        const item : { [key: string]: IDetailsListItem | string } = {
+          key: entityId
+        };
+
         this._columns.forEach((column : IColumn) => {
           const metaColumn = meta.columns.find((entityColumn) => entityColumn.fieldName === column.fieldName);
           if(!metaColumn) { throw new Error('meta column not found'); }
@@ -156,15 +164,11 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
           const fieldText = data[column.fieldName + ODATA_FORMATTED_POSTFIX] ?? data[fieldName];
           let fieldValue = fieldText;
           let entityName;
+          // const entityId = data[meta.columns.find((entityColumn) => entityColumn.isPrimary === true)?.fieldName ?? column.name];
 
           if(metaColumn.hasLink) {
-            if(metaColumn.isLookup === true) {
-              fieldValue = data[metaColumn.fieldName];
-              entityName = data[column.fieldName + ODATA_LOOKUPLOGICALNAME];
-            } else {
-              fieldValue = data[meta.columns.find((entityColumn) => entityColumn.isPrimary === true)?.fieldName ?? column.name];
-              entityName = meta.name;
-            }
+            fieldValue = (metaColumn.isLookup === true) ? data[metaColumn.fieldName] : entityId;
+            entityName = (metaColumn.isLookup === true) ? data[column.fieldName + ODATA_LOOKUPLOGICALNAME] : meta.name;
           }
 
           item[fieldName] = {
@@ -177,7 +181,7 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
         if(this.state.searchValue.length > 0) {
           let add = false;
           for(const name in item) {
-            add = add || item[name].text?.toLowerCase().includes(this.state.searchValue.toLowerCase()) || false;
+            add = add || (item[name] as IDetailsListItem).text?.toLowerCase().includes(this.state.searchValue.toLowerCase()) || false;
           }
           if(add === true) {
             this._allItems.push(item);
@@ -209,17 +213,10 @@ export class FluentUIDetailsList extends React.Component<{}, IDetailsListDocumen
     this.refreshContent();
   }
 
-  private _getSelectionDetails(): string {
-    const selectionCount = this._selection.getSelectedCount();
-
-    switch (selectionCount) {
-      case 0:
-        return 'No items selected';
-      case 1:
-        return '1 item selected: ' + (this._selection.getSelection()[0] as { [key: string]: any }).name;
-      default:
-        return `${selectionCount} items selected`;
-    }
+  private _getSelectionKeys(): string[] {
+    const keys : (string | number | undefined)[] = [];
+    this._selection.getSelection().forEach((item) => { keys.push(item.key); });
+    return keys as string[];
   }
 
   private _onColumnClick = (ev: React.MouseEvent<HTMLElement>, column: IColumn): void => {

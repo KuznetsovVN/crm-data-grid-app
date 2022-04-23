@@ -1,5 +1,9 @@
 import { IColumn } from '@fluentui/react/lib/DetailsList';
 
+export interface IDetailsListDocumentsProps {
+  getSelectedItemIdsCallback: (ids : string[]) => string[];
+}
+
 export interface IDetailsListDocumentsState {
   columns: IColumn[];
   items: { [key: string]: any }[];
