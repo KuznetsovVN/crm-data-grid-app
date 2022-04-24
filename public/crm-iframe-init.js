@@ -5,26 +5,11 @@ function onload () {
     var iFrameWindow = iFrameElem.getObject().contentWindow;
 
     const ENTITY_VIEW_GUID = "00000000-0000-0000-00AA-000010001004";
-    const LOOKUP_FIELDS = ['parentcustomerid'];
-    const DISPLAY_NAME_DICT = {
-      contactid: 'Контакт',
-      fullname: 'Полное имя',
-      emailaddress1: 'Электронная почта',
-      parentcustomerid: 'Название компании',
-      telephone1 : 'Рабочий телефон'
-    };
 
     if(iFrameWindow.InitXrmAPI !== null) {
       iFrameWindow.InitXrmAPI({
+        xrm: Xrm,
         entityViewGuid: ENTITY_VIEW_GUID,
-        lookupFields: LOOKUP_FIELDS,
-        displayNameDict: DISPLAY_NAME_DICT,
-        getEntityMetadata: Xrm.Utility.getEntityMetadata,
-        retrieveRecord: Xrm.WebApi.retrieveRecord,
-        retrieveMultipleRecords: Xrm.WebApi.retrieveMultipleRecords,
-        openQuickCreate: Xrm.Utility.openQuickCreate,
-        openSubGrid: Xrm.Navigation.openUrl,
-        openForm: Xrm.Navigation.openForm,
       });
     }
   };
