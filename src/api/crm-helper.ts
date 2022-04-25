@@ -21,7 +21,8 @@ export interface IEntityMeta {
 
 export interface IXrmAPI {
   xrm: any,
-  entityViewGuid: string
+  entityViewGuid: string,
+  customFilterConditions?: string[],
 }
 
 const win : { [key: string] : any } = (window as { [key: string]: any });
@@ -262,7 +263,33 @@ export const XrmHelper = (function() {
       }
 
       _xrmAPI.xrm.WebApi.retrieveRecord("savedquery", _entityViewGuid, "$select=fetchxml").then(function(data:any) {
-        _xrmAPI.xrm.WebApi.retrieveMultipleRecords(_entityName, "?fetchXml=" + encodeURIComponent(data.fetchxml)).then(function(result:any) {
+
+        let fetchxml = data.fetchxml;
+
+        if(_xrmAPI.customFilterConditions && _xrmAPI.customFilterConditions.length > 0) {
+          const fetch : Document = (new DOMParser()).parseFromString(fetchxml, 'text/xml');
+          const entityElem = fetch.getElementsByTagName('fetch')[0].getElementsByTagName('entity')[0];
+          let filterElem = entityElem.getElementsByTagName('filter')[0];
+
+          if(!filterElem) {
+            const doc : Document = (new DOMParser()).parseFromString('<filter type="and" />', 'text/xml');
+            const filter = doc.getElementsByTagName('filter')[0];
+            if(filter) {
+              entityElem.appendChild(filter);
+            }
+            filterElem = entityElem.getElementsByTagName('filter')[0];
+          }
+
+          _xrmAPI.customFilterConditions?.forEach((condition) => {
+            const doc : Document = (new DOMParser()).parseFromString(condition, 'text/xml');
+            const conditionElem = doc.getElementsByTagName('condition')[0];
+            if(condition) {
+              filterElem.appendChild(conditionElem);
+            }
+          });
+          fetchxml = (new XMLSerializer()).serializeToString(fetch);
+        }
+        _xrmAPI.xrm.WebApi.retrieveMultipleRecords(_entityName, "?fetchXml=" + encodeURIComponent(fetchxml)).then(function(result:any) {
           callback(result);
         });
       });

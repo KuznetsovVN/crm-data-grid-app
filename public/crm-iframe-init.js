@@ -10,6 +10,9 @@ function onload () {
       iFrameWindow.InitXrmAPI({
         xrm: Xrm,
         entityViewGuid: ENTITY_VIEW_GUID,
+        customFilterConditions : [
+          '<condition attribute="new_opportunityid" operator="eq" value="{58695D1F-2ABB-EC11-ACE6-005056A670CA}" />'
+        ]
       });
     }
   };
