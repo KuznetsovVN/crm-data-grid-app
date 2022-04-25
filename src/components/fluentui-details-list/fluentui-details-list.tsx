@@ -1,14 +1,13 @@
 import * as React from 'react';
 
 import { initializeIcons } from '@fluentui/react';
-import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn } from '@fluentui/react/lib/DetailsList';
+import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn, ConstrainMode } from '@fluentui/react/lib/DetailsList';
 import { Link } from '@fluentui/react/lib/Link';
 
 import { FluentUICommandBar } from '../fluentui-command-bar/fluentui-command-bar';
 import { FluentUISearchBox } from '../fluentui-search-box/fluentui-search-box';
 
 import { IDetailsListDocumentsProps, IDetailsListDocumentsState, IDetailsListItem } from './fluentui-details-list.types';
-import { GridStyles } from './fluentui-details-list.styles';
 import noDataImg from './no-data.png';
 
 import { XrmHelper, IEntityColumn } from '../../api/crm-helper';
@@ -58,8 +57,10 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
 
     return (
       <div>
-          <FluentUICommandBar />
-          <FluentUISearchBox onSearch={this._onSearch.bind(this)} />
+        <FluentUICommandBar />
+        <FluentUISearchBox onSearch={this._onSearch.bind(this)} />
+
+        <div style={{ 'height': `${this.getAvailableGridHeight()}px`, 'overflowY' : 'auto' }}>
           { items.length > 0 ? (
             <DetailsList
               items={items}
@@ -68,8 +69,8 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
               selectionMode={SelectionMode.multiple}
               setKey="multiple"
               getKey={this._getKey}
-              styles={GridStyles}
               layoutMode={DetailsListLayoutMode.justified}
+              constrainMode={ConstrainMode.unconstrained}
               isHeaderVisible={true}
               selection={this._selection}
               selectionPreservedOnEmptyClick={true}
@@ -85,6 +86,7 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
               <p>Действия не найдены для этой сущности Действие. Нажмите кнопку "Добавить" (+).</p>
             </div>
           ) }
+        </div>
       </div>
     );
   }
@@ -94,6 +96,13 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
   //     this._selection.setAllSelected(false);
   //   }
   // }
+
+  private getAvailableGridHeight() : number {
+    const body = document.body;
+    const html = document.documentElement;
+    const heightOfOtherControls = 80; // CommandBar & SearchBox
+    return Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight ) - heightOfOtherControls;
+  }
 
   private refreshColumns() {
     const meta = XrmHelper.getEntityMeta();
