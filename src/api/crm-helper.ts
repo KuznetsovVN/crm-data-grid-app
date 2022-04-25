@@ -109,6 +109,22 @@ export const XrmHelper = (function() {
     return linkTo;
   };
 
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+  * private findOrCreateXmlElement: (parent : Element, name : string, etalon : string) => Element;
+  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+  const _findOrCreateXmlElement = (parent : Element, name : string, etalon : string) : Element => {
+    let element = parent.getElementsByTagName(name)[0];
+    if(!element) {
+      const _doc : Document = (new DOMParser()).parseFromString(etalon, 'text/xml');
+      const filter = _doc.getElementsByTagName(name)[0];
+      if(filter) {
+        parent.appendChild(filter);
+      }
+      element = parent.getElementsByTagName('filter')[0];
+    }
+    return element;
+  };
+
   return {
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
@@ -269,21 +285,12 @@ export const XrmHelper = (function() {
         if(_xrmAPI.customFilterConditions && _xrmAPI.customFilterConditions.length > 0) {
           const fetch : Document = (new DOMParser()).parseFromString(fetchxml, 'text/xml');
           const entityElem = fetch.getElementsByTagName('fetch')[0].getElementsByTagName('entity')[0];
-          let filterElem = entityElem.getElementsByTagName('filter')[0];
+          const filterElem = _findOrCreateXmlElement(entityElem, 'filter', '<filter type="and" />');
 
-          if(!filterElem) {
-            const doc : Document = (new DOMParser()).parseFromString('<filter type="and" />', 'text/xml');
-            const filter = doc.getElementsByTagName('filter')[0];
-            if(filter) {
-              entityElem.appendChild(filter);
-            }
-            filterElem = entityElem.getElementsByTagName('filter')[0];
-          }
-
-          _xrmAPI.customFilterConditions?.forEach((condition) => {
+          _xrmAPI.customFilterConditions.forEach((condition) => {
             const doc : Document = (new DOMParser()).parseFromString(condition, 'text/xml');
             const conditionElem = doc.getElementsByTagName('condition')[0];
-            if(condition) {
+            if(conditionElem) {
               filterElem.appendChild(conditionElem);
             }
           });
