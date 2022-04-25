@@ -9,6 +9,7 @@ import { FluentUICommandBar } from '../fluentui-command-bar/fluentui-command-bar
 import { FluentUISearchBox } from '../fluentui-search-box/fluentui-search-box';
 
 import { IDetailsListDocumentsProps, IDetailsListDocumentsState, IDetailsListItem } from './fluentui-details-list.types';
+import { GridStyles } from './fluentui-details-list.styles';
 
 import { XrmHelper, IEntityColumn } from '../../api/crm-helper';
 
@@ -73,7 +74,8 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
               selectionMode={SelectionMode.multiple}
               getKey={this._getKey}
               setKey="multiple"
-              layoutMode={DetailsListLayoutMode.justified}
+              styles={GridStyles}
+              layoutMode={DetailsListLayoutMode.fixedColumns}
               isHeaderVisible={true}
               selection={this._selection}
               selectionPreservedOnEmptyClick={true}
