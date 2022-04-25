@@ -3,13 +3,13 @@ import * as React from 'react';
 import { initializeIcons } from '@fluentui/react';
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn } from '@fluentui/react/lib/DetailsList';
 import { Link } from '@fluentui/react/lib/Link';
-import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
 
 import { FluentUICommandBar } from '../fluentui-command-bar/fluentui-command-bar';
 import { FluentUISearchBox } from '../fluentui-search-box/fluentui-search-box';
 
 import { IDetailsListDocumentsProps, IDetailsListDocumentsState, IDetailsListItem } from './fluentui-details-list.types';
 import { GridStyles } from './fluentui-details-list.styles';
+import noDataImg from './no-data.png';
 
 import { XrmHelper, IEntityColumn } from '../../api/crm-helper';
 
@@ -50,32 +50,26 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
       columns: this._columns,
       selectionDetails: this._getSelectionKeys().join(','),
       searchValue: '',
-      isModalSelection: true,
-      isCompactMode: true,
-      announcedMessage: undefined,
     };
   }
 
   public render() {
-    const { columns, isCompactMode, items, selectionDetails } = this.state;
+    const { columns, items, selectionDetails } = this.state;
 
     return (
       <div>
-        {/* <Announced message={selectionDetails} />
-        {announcedMessage ? <Announced message={announcedMessage} /> : undefined} */}
           <FluentUICommandBar />
           <FluentUISearchBox onSearch={this._onSearch.bind(this)} />
-
-          <MarqueeSelection selection={this._selection}>
+          { items.length > 0 ? (
             <DetailsList
               items={items}
-              compact={isCompactMode}
+              compact={true}
               columns={columns}
               selectionMode={SelectionMode.multiple}
-              getKey={this._getKey}
               setKey="multiple"
+              getKey={this._getKey}
               styles={GridStyles}
-              layoutMode={DetailsListLayoutMode.fixedColumns}
+              layoutMode={DetailsListLayoutMode.justified}
               isHeaderVisible={true}
               selection={this._selection}
               selectionPreservedOnEmptyClick={true}
@@ -85,16 +79,21 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
               ariaLabelForSelectAllCheckbox="Toggle selection for all items"
               checkButtonAriaLabel="select row"
             />
-          </MarqueeSelection>
+          ) : (
+            <div style={{ 'textAlign' : 'center', 'padding' : '15px' }}>
+              <img src={noDataImg} />
+              <p>Действия не найдены для этой сущности Действие. Нажмите кнопку "Добавить" (+).</p>
+            </div>
+          ) }
       </div>
     );
   }
 
-  public componentDidUpdate(previousProps: {}, previousState: IDetailsListDocumentsState) {
-    if (previousState.isModalSelection !== this.state.isModalSelection && !this.state.isModalSelection) {
-      this._selection.setAllSelected(false);
-    }
-  }
+  // public componentDidUpdate(previousProps: {}, previousState: IDetailsListDocumentsState) {
+  //   if (previousState.isModalSelection !== this.state.isModalSelection && !this.state.isModalSelection) {
+  //     this._selection.setAllSelected(false);
+  //   }
+  // }
 
   private refreshColumns() {
     const meta = XrmHelper.getEntityMeta();
@@ -111,9 +110,8 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
             key: entityColumn.name,
             name: entityColumn.displayName,
             fieldName: entityColumn.fieldName,
-            minWidth: 10,
+            minWidth: Math.abs(entityColumn.width - margin),
             maxWidth: Math.abs(entityColumn.width - margin),
-            currentWidth: Math.abs(entityColumn.width - margin),
             isRowHeader: true,
             isResizable: true,
             isSorted: entityColumn.isPrimary === true,
@@ -229,11 +227,6 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
       if (newCol === currColumn) {
         currColumn.isSortedDescending = !currColumn.isSortedDescending;
         currColumn.isSorted = true;
-        this.setState({
-          announcedMessage: `${currColumn.name} is sorted ${
-            currColumn.isSortedDescending ? 'descending' : 'ascending'
-          }`,
-        });
       } else {
         newCol.isSorted = false;
         newCol.isSortedDescending = true;

@@ -1,4 +1,4 @@
-import { IColumn } from '@fluentui/react/lib/DetailsList';
+import { DetailsListLayoutMode, IColumn } from '@fluentui/react/lib/DetailsList';
 
 export interface IDetailsListDocumentsProps {
   getSelectedItemIDsCallback: (ids : string[]) => string[];
@@ -9,9 +9,6 @@ export interface IDetailsListDocumentsState {
   items: { [key: string]: any }[];
   selectionDetails: string;
   searchValue: string;
-  isModalSelection: boolean;
-  isCompactMode: boolean;
-  announcedMessage?: string;
 }
 
 export interface IDetailsListItem {

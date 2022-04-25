@@ -8,7 +8,6 @@ export const GridStyles: Partial<IDetailsListStyles> = {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'start',
-        height: '60vh',
       },
     },
   },
