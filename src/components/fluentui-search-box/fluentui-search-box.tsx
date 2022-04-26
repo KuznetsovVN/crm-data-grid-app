@@ -1,14 +1,28 @@
 import * as React from 'react';
-import { SearchBox } from '@fluentui/react/lib/SearchBox';
+import { SearchBox, ISearchBoxStyles } from '@fluentui/react/lib/SearchBox';
 
 interface IFluentUISearchBox {
   onSearch: (newValue: string) => void
 }
 
+const searchBoxStyles: Partial<ISearchBoxStyles> = {
+  root: {
+    selectors: {
+      '& [role=searchbox]': {
+        fontSize: 12,
+      },
+    }
+  }
+};
+
 export class FluentUISearchBox extends React.Component<React.PropsWithChildren<IFluentUISearchBox>>{
   public render() {
     return (
-      <SearchBox placeholder="Search" onSearch={this.props.onSearch} />
+      <SearchBox
+        styles={searchBoxStyles}
+        placeholder="Search"
+        onSearch={this.props.onSearch}
+      />
     );
   }
 }

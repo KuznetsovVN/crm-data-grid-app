@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { initializeIcons } from '@fluentui/react';
-import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn, ConstrainMode } from '@fluentui/react/lib/DetailsList';
+import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn, ConstrainMode, IDetailsListStyles } from '@fluentui/react/lib/DetailsList';
 import { Link } from '@fluentui/react/lib/Link';
 
 import { FluentUICommandBar } from '../fluentui-command-bar/fluentui-command-bar';
@@ -16,6 +16,22 @@ const ODATA_FORMATTED_POSTFIX = "@OData.Community.Display.V1.FormattedValue";
 const ODATA_LOOKUPLOGICALNAME = "@Microsoft.Dynamics.CRM.lookuplogicalname";
 
 initializeIcons();
+
+export const GridStyles: Partial<IDetailsListStyles> = {
+  root: {
+    selectors: {
+      '& [role=grid]': {
+        fontSize: 12,
+      },
+      '& [role=rowheader]': {
+        fontSize: 12,
+      },
+      '& [role=button] > span': {
+        fontSize: 12,
+      },
+    },
+  },
+};
 
 export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsProps, IDetailsListDocumentsState> {
   private _selection: Selection;
@@ -74,6 +90,7 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
               isHeaderVisible={true}
               selection={this._selection}
               selectionPreservedOnEmptyClick={true}
+              styles={GridStyles}
               onItemInvoked={this._onItemInvoked}
               enterModalSelectionOnTouch={true}
               ariaLabelForSelectionColumn="Toggle selection"

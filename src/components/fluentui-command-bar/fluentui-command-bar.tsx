@@ -25,8 +25,16 @@ export const FluentUICommandBar: React.FunctionComponent = () => {
 
   const _styles: ICommandBarStyles = {
     root: {
-      color: '#505050',
       backgroundColor: '#F3F3F3',
+      color: '#505050',
+      height: '38px',
+      padding: '0px 10px 0px 10px',
+
+      selectors: {
+      '& [role=menuitem]': {
+        fontSize: 12,
+      },
+    },
     }
   };
 
