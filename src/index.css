@@ -34,3 +34,10 @@ code {
 .ms-DetailsRow-check {
   width: 34px;
 }
+
+.ms-DetailsRow-check div,
+.ms-DetailsRow-check div i {
+  font-size: 14px;
+  height: 16px;
+  width: 16px;
+}

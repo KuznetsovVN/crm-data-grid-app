@@ -8,11 +8,22 @@ function onload () {
 
     if(iFrameWindow.InitXrmAPI !== null) {
       iFrameWindow.InitXrmAPI({
+
+        /* [REQUIRED] Type: Xrm Namespace */
         xrm: Xrm,
-        entityViewGuid: ENTITY_VIEW_GUID,
-        customFilterConditions : [
-          '<condition attribute="new_opportunityid" operator="eq" value="{58695D1F-2ABB-EC11-ACE6-005056A670CA}" />'
-        ]
+
+        /* Type: string | undefined | 'Контакты' */
+        title: undefined,
+
+        /* Type: string | undefined */
+        fetchXml: undefined,
+
+        /* Type: string | undefined | '00000000-0000-0000-00AA-000010001004' */
+        entityViewGuid: undefined,
+
+        /* Type: array | undefined | [ '<condition attribute="new_opportunityid" operator="eq" value="{58695D1F-2ABB-EC11-ACE6-005056A670CA}" />' ] */
+        customFilterConditions : [],
+
       });
     }
   };
