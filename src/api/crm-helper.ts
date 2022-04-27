@@ -7,6 +7,8 @@ export interface IEntityColumn {
   isLookup?: boolean,
   isHidden?: boolean,
   hasLink?: boolean,
+  isSorted: boolean,
+  isSortedDescending: boolean,
 }
 
 export interface IEntityMeta {
@@ -149,6 +151,7 @@ export const XrmHelper = (function() {
     if(!entityElemName) {
       throw new Error('Incoming fetchxml not have entity element or name attribute: ' + _fetchXml);
     }
+    const orderElem = entityElem.getElementsByTagName('order')[0];
 
     _entityName = entityElemName;
     _entityObject = layout ? layout.Object : undefined;
@@ -239,6 +242,8 @@ export const XrmHelper = (function() {
           width: columnMeta.width,
           isLookup: isLookup,
           hasLink: countOfVisibleColumns === 0 || isLookup,
+          isSorted: orderElem && orderElem.getAttribute('attribute') === name,
+          isSortedDescending: orderElem && orderElem.getAttribute('descending') === 'true',
         };
 
         _columns.push(column);
