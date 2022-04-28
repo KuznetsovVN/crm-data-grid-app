@@ -5,6 +5,7 @@ export interface IDetailsListDocumentsProps {
 }
 
 export interface IDetailsListDocumentsState {
+  uiConfig: any,
   columns: IColumn[];
   items: { [key: string]: any }[];
   selectionDetails: string;

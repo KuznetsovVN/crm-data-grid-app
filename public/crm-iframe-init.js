@@ -13,6 +13,21 @@ function onload () {
         /* Type: string | undefined | 'Контакты' */
         title: undefined,
 
+        /* Type: boolean | undefined | false - default */
+        allowSearchBox: undefined,
+
+        /* Type: boolean | undefined | false - default */
+        allowAddButton: undefined,
+
+        /* Type: boolean | undefined | false - default */
+        allowOpenAssociatedRecordsButton: undefined,
+
+        /* Type: boolean | undefined | false - default */
+        allowRefreshGridViewButton: undefined,
+
+        /* Type: boolean | undefined | false - default */
+        allowOpenInNewWindowButton: undefined,
+
         /* Type: string | undefined */
         fetchXml: undefined,
 

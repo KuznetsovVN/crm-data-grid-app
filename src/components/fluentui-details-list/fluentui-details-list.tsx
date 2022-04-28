@@ -45,6 +45,9 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
     this._columns = [];
 
     XrmHelper.onReady(() => {
+      this.setState({
+        uiConfig: XrmHelper.getUIConfig()
+      });
       this.refreshColumns();
       this.refreshContent();
     });
@@ -61,6 +64,7 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
     });
 
     this.state = {
+      uiConfig: XrmHelper.getUIConfig(),
       items: this._allItems,
       columns: this._columns,
       selectionDetails: this._getSelectionKeys().join(','),
@@ -68,13 +72,32 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
     };
   }
 
+  private cmdOpenInNewWindow() {
+    const selectionKeys = this._getSelectionKeys();
+    if(selectionKeys.length > 0) {
+      const entityName = XrmHelper.getEntityMeta()?.name;
+      if(entityName) {
+        for(let i = 0; i < selectionKeys.length; i++) {
+          const entityId = selectionKeys[i];
+          XrmHelper.openForm(entityName, entityId, true);
+        }
+      }
+    } else {
+      alert('Элементы таблицы не выбраны');
+    }
+  }
+
+  private cmdRefreshContent() {
+    this.refreshContent();
+  }
+
   public render() {
     const { columns, items, selectionDetails } = this.state;
 
     return (
       <div>
-        <FluentUICommandBar />
-        <FluentUISearchBox onSearch={this._onSearch.bind(this)} />
+        <FluentUICommandBar onRefreshGrid={this.cmdRefreshContent.bind(this)} onOpenInNewWindow={this.cmdOpenInNewWindow.bind(this)} />
+        {this.state.uiConfig.allowSearchBox ? <FluentUISearchBox onSearch={this._onSearch.bind(this)} /> : ''}
 
         <div style={{ 'height': `${this.getAvailableGridHeight()}px`, 'overflowY' : 'auto' }}>
           { items.length > 0 ? (
@@ -100,7 +123,7 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
           ) : (
             <div style={{ 'textAlign' : 'center', 'padding' : '15px' }}>
               <img src={noDataImg} />
-              <p>Действия не найдены для этой сущности Действие. Нажмите кнопку "Добавить" (+).</p>
+              <p>Записи не найдены для этой сущности.</p>
             </div>
           ) }
         </div>
@@ -117,7 +140,7 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
   private getAvailableGridHeight() : number {
     const body = document.body;
     const html = document.documentElement;
-    const heightOfOtherControls = 80; // CommandBar & SearchBox
+    const heightOfOtherControls = this.state.uiConfig.allowSearchBox ? 80 : 40; // CommandBar & SearchBox
     return Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight ) - heightOfOtherControls;
   }
 
@@ -166,6 +189,9 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
 
   private refreshContent() {
     this._allItems = [];
+    this.setState({
+      items: this._allItems
+    });
 
     XrmHelper.getDataByFetchXml((data: any) => {
       if(data === undefined)
@@ -228,7 +254,12 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
   }
 
   private _onItemInvoked(item: { [key: string]: any }): void {
-    alert(`Item invoked: ${item.name}`);
+    const entityName = XrmHelper.getEntityMeta()?.name;
+    console.log('entityName: ' + entityName);
+    console.log('item.key: ' + item.key);
+    if(entityName) {
+      XrmHelper.openForm(entityName, item.key, true);
+    }
   }
 
   private _onSearch(newValue: string) : void {

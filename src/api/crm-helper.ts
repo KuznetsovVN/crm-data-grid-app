@@ -19,9 +19,23 @@ export interface IEntityMeta {
   columns: IEntityColumn[]
 }
 
+interface EventArtgs {
+  cancel : boolean,
+}
+
+interface ItemsEventArtgs {
+  cancel : boolean,
+  ids : string[],
+}
+
 export interface IXrmAPI {
   xrm: any,
   title?: string,
+  allowSearchBox?: boolean,
+  allowAddButton?: boolean,
+  allowOpenAssociatedRecordsButton?: boolean,
+  allowRefreshGridViewButton?: boolean,
+  allowOpenInNewWindowButton?: boolean,
   fetchXml?: string;
   entityViewGuid?: string,
   customFilterConditions?: string[],
@@ -295,6 +309,16 @@ export const XrmHelper = (function() {
       onReadyCallbacks.push(callback);
     },
 
+    getUIConfig: () => {
+      return {
+        allowSearchBox: _xrmAPI?.allowSearchBox ?? false,
+        allowAddButton: _xrmAPI?.allowAddButton ?? false,
+        allowOpenAssociatedRecordsButton: _xrmAPI?.allowOpenAssociatedRecordsButton ?? false,
+        allowRefreshGridViewButton: _xrmAPI?.allowRefreshGridViewButton ?? false,
+        allowOpenInNewWindowButton: _xrmAPI?.allowOpenInNewWindowButton ?? false,
+      };
+    },
+
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
     * public getEntityMeta : () : (IEntityMeta | undefined) => IEntityMeta;
     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -365,14 +389,21 @@ export const XrmHelper = (function() {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
     * public openForm: (entityName : string, entityId : string) => void;
     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    openForm: (entityName : string, entityId : string) => {
+    openForm: (entityName : string, entityId : string, inNewWindow?: boolean) => {
       if(!(_xrmAPI && _xrmAPI.xrm))
         return undefined;
 
-      return _xrmAPI.xrm.Navigation.openForm({
-        entityName: entityName,
-        entityId: entityId
-      });
-    }
+        const entityFormOptions : any = {
+          entityName: entityName,
+          entityId: entityId,
+        };
+
+        if(inNewWindow === true) {
+          entityFormOptions.openInNewWindow = true;
+        }
+
+        return _xrmAPI.xrm.Navigation.openForm(entityFormOptions);
+    },
+
   };
 })();

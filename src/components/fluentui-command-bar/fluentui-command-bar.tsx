@@ -8,8 +8,14 @@ import { XrmHelper } from '../../api/crm-helper';
 
 initializeIcons();
 
-export const FluentUICommandBar: React.FunctionComponent = () => {
+export interface IFluentUICommandBarProps {
+  onRefreshGrid: () => void,
+  onOpenInNewWindow: () => void,
+}
+
+export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren<IFluentUICommandBarProps>> = (props: React.PropsWithChildren<IFluentUICommandBarProps>) => {
   const [ state, setState ] = React.useState({
+    uiConfig: XrmHelper.getUIConfig(),
     name: XrmHelper.getEntityMeta()?.name || '',
     displayName: XrmHelper.getEntityMeta()?.displayName || '',
     displayNameCollection: XrmHelper.getEntityMeta()?.displayCollectionName || '',
@@ -17,6 +23,7 @@ export const FluentUICommandBar: React.FunctionComponent = () => {
 
   XrmHelper.onReady(() => {
     setState({
+      uiConfig: XrmHelper.getUIConfig(),
       name: XrmHelper.getEntityMeta()?.name || '',
       displayName: XrmHelper.getEntityMeta()?.displayName || '',
       displayNameCollection: XrmHelper.getEntityMeta()?.displayCollectionName || '',
@@ -56,8 +63,9 @@ export const FluentUICommandBar: React.FunctionComponent = () => {
     }
   ];
 
-  const _farItems: ICommandBarItemProps[] = [
-    {
+  const _farItems: ICommandBarItemProps[] = [];
+  if(state.uiConfig.allowAddButton === true) {
+    _farItems.push({
       key: 'add',
       text: 'Добавить запись ' + state.displayName + '.',
       ariaLabel: 'Add',
@@ -65,8 +73,10 @@ export const FluentUICommandBar: React.FunctionComponent = () => {
       iconProps: { iconName: 'Add' },
       onClick: () => { XrmHelper.openQuickCreate(state.name); },
       buttonStyles: _buttonStyles,
-    },
-    {
+    });
+  }
+  if(state.uiConfig.allowOpenAssociatedRecordsButton) {
+    _farItems.push({
       key: 'table',
       text: 'Просмотрите записи, связанные с этим представлением.',
       ariaLabel: 'Table',
@@ -74,8 +84,30 @@ export const FluentUICommandBar: React.FunctionComponent = () => {
       iconProps: { iconName: 'Table' },
       onClick: () => { XrmHelper.openSubGrid(); },
       buttonStyles: _buttonStyles,
-    },
-  ];
+    });
+  }
+  if(state.uiConfig.allowRefreshGridViewButton) {
+    _farItems.push({
+      key: 'refresh',
+      text: 'Обновить содержимое таблицы.',
+      ariaLabel: 'Refresh',
+      iconOnly: true,
+      iconProps: { iconName: 'Refresh' },
+      onClick: () => { props.onRefreshGrid(); },
+      buttonStyles: _buttonStyles,
+    });
+  }
+  if(state.uiConfig.allowOpenInNewWindowButton) {
+    _farItems.push({
+      key: 'openInNewWindow',
+      text: 'Открыть выбранные элементы таблицы.',
+      ariaLabel: 'OpenInNewWindow',
+      iconOnly: true,
+      iconProps: { iconName: 'OpenInNewWindow' },
+      onClick: () => { props.onOpenInNewWindow(); },
+      buttonStyles: _buttonStyles,
+    });
+  }
 
   return (
     <CommandBar
