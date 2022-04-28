@@ -190,17 +190,23 @@ export const XrmHelper = (function() {
         const relatedEntityName = elem.getAttribute('name');
         if(relatedEntityName) { entityNames.push(relatedEntityName); }
         if(linkAlias) {
-          const linkName = elem.getElementsByTagName('attribute')[0]?.getAttribute('name');
-          if(linkName) {
-            fieldNames.push(linkAlias + '.' + linkName);
-          }
+          const linkFrom = elem.getAttribute('from');
+          const linkTo = elem.getAttribute('to');
 
-          linkEntities.push({
-            alias: linkAlias,
-            name: linkName,
-            from: elem.getAttribute('from'),
-            to: elem.getAttribute('to'),
-          });
+          const linkAttributes = elem.getElementsByTagName('attribute');
+          for(let a = 0; a < linkAttributes.length; a++) {
+            const linkName = linkAttributes[a].getAttribute('name');
+            if(linkName) {
+              fieldNames.push(linkAlias + '.' + linkName);
+            }
+
+            linkEntities.push({
+              alias: linkAlias,
+              name: linkName,
+              from: linkFrom,
+              to: linkTo,
+            });
+          }
         }
       }
     }
