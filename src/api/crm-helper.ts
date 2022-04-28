@@ -174,7 +174,7 @@ export const XrmHelper = (function() {
     /* columns names */
 
     const entityNames : string[] = [ _entityName ];
-    let columnNames : string[] = [];
+    let fieldNames : string[] = [];
     const columnMetas : any[] = [];
     const linkEntities : any[] = [];
 
@@ -183,7 +183,7 @@ export const XrmHelper = (function() {
       if(elem.nodeName === 'attribute') {
         const elemName = elem.getAttribute('name');
         if(elemName) {
-          columnNames.push(elemName);
+          fieldNames.push(elemName);
         }
       } else if(elem.nodeName === 'link-entity') {
         const linkAlias = elem.getAttribute('alias');
@@ -192,14 +192,14 @@ export const XrmHelper = (function() {
         if(linkAlias) {
           const linkName = elem.getElementsByTagName('attribute')[0]?.getAttribute('name');
           if(linkName) {
-            columnNames.push(linkAlias + '.' + linkName);
+            fieldNames.push(linkAlias + '.' + linkName);
           }
 
           linkEntities.push({
             alias: linkAlias,
             name: linkName,
-            from: elem.getElementsByTagName('attribute')[0]?.getAttribute('from'),
-            to: elem.getElementsByTagName('attribute')[0]?.getAttribute('to')
+            from: elem.getAttribute('from'),
+            to: elem.getAttribute('to'),
           });
         }
       }
@@ -209,13 +209,13 @@ export const XrmHelper = (function() {
 
     if(layout) {
       const order = layout.Rows[0].Cells.map((cell:any) => cell.Name);
-      columnNames = columnNames.sort((a, b) => order.indexOf(a) - order.indexOf(b) );
+      fieldNames = fieldNames.sort((a, b) => order.indexOf(a) - order.indexOf(b) );
     }
 
-    for(let i = 0; i < columnNames.length; i++) {
-      const cell = layout && layout.Rows[0].Cells.find((cell:any) => cell.Name === columnNames[i]);
+    for(let i = 0; i < fieldNames.length; i++) {
+      const cell = layout && layout.Rows[0].Cells.find((cell:any) => cell.Name === fieldNames[i]);
       const meta = {
-        name: columnNames[i],
+        fieldName: fieldNames[i],
         width: cell ? cell.Width : 100,
         isHidden: layout ? (cell === undefined ? true : cell.IsHidden) : false,
       };
@@ -224,11 +224,14 @@ export const XrmHelper = (function() {
 
     /* get entity definitions */
 
+    const columnNames : string[] = fieldNames.map((fieldName) => fieldName.split('.').at(-1) ?? '');
+
     _getMultipleEntityDefinitions(entityNames, columnNames).then((entityDefinitions:any[]) => {
-      for (let i = 0; i < columnNames.length; i++) {
-        const columnMeta = columnMetas.find((column) => column.name === columnNames[i]);
-        const name = columnMeta.name.split('.').at(-1);
-        let fieldName = columnMeta.name;
+      for (let i = 0; i < fieldNames.length; i++) {
+        const columnMeta = columnMetas.find((column) => column.fieldName === fieldNames[i]);
+        const name = columnMeta.fieldName.split('.').at(-1);
+        let fieldName = columnMeta.fieldName;
+
         const entityDefinition = entityDefinitions.find((def) => { return def.name === name; });
 
         const isPrimary = entityDefinition?.isPrimary ?? false;
