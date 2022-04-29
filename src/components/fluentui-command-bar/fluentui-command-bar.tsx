@@ -9,8 +9,8 @@ import { XrmHelper } from '../../api/crm-helper';
 initializeIcons();
 
 export interface IFluentUICommandBarProps {
-  onRefreshGrid: () => void,
   onOpenInNewWindow: () => void,
+  onRefreshGrid: () => void,
 }
 
 export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren<IFluentUICommandBarProps>> = (props: React.PropsWithChildren<IFluentUICommandBarProps>) => {

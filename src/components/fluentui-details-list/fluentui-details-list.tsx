@@ -4,6 +4,7 @@ import { initializeIcons } from '@fluentui/react';
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn, ConstrainMode, IDetailsListStyles } from '@fluentui/react/lib/DetailsList';
 import { Link } from '@fluentui/react/lib/Link';
 
+import { FluentUIContextualMenu } from '../fluentui-context-menu/fluentui-context-menu';
 import { FluentUICommandBar } from '../fluentui-command-bar/fluentui-command-bar';
 import { FluentUISearchBox } from '../fluentui-search-box/fluentui-search-box';
 
@@ -72,6 +73,21 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
     };
   }
 
+  private cmdGetSelectedCount() {
+    return this._getSelectionKeys().length;
+  }
+
+  private cmdOpen() {
+    const selectionKeys = this._getSelectionKeys();
+    if(selectionKeys.length > 0) {
+      const entityName = XrmHelper.getEntityMeta()?.name;
+      if(entityName) {
+        const entityId = selectionKeys[0];
+        XrmHelper.openForm(entityName, entityId);
+      }
+    }
+  }
+
   private cmdOpenInNewWindow() {
     const selectionKeys = this._getSelectionKeys();
     if(selectionKeys.length > 0) {
@@ -96,7 +112,8 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
 
     return (
       <div>
-        <FluentUICommandBar onRefreshGrid={this.cmdRefreshContent.bind(this)} onOpenInNewWindow={this.cmdOpenInNewWindow.bind(this)} />
+        <FluentUIContextualMenu getSelectedCount={this.cmdGetSelectedCount.bind(this)} onOpen={this.cmdOpen.bind(this)} onOpenInNewWindow={this.cmdOpenInNewWindow.bind(this)} onRefreshGrid={this.cmdRefreshContent.bind(this)} />
+        <FluentUICommandBar onOpenInNewWindow={this.cmdOpenInNewWindow.bind(this)} onRefreshGrid={this.cmdRefreshContent.bind(this)} />
         {this.state.uiConfig.allowSearchBox ? <FluentUISearchBox onSearch={this._onSearch.bind(this)} /> : ''}
 
         <div style={{ 'height': `${this.getAvailableGridHeight()}px`, 'overflowY' : 'auto' }}>
