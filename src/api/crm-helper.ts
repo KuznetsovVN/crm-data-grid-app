@@ -376,7 +376,7 @@ export const XrmHelper = (function() {
         return;
       }
 
-      _xrmAPI.xrm.WebApi.retrieveMultipleRecords(_entityName, query).then(callback);
+      _xrmAPI.xrm.WebApi.retrieveMultipleRecords(_entityName, query).then(callback, console.log);
     },
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
@@ -390,9 +390,7 @@ export const XrmHelper = (function() {
 
       _xrmAPI.xrm.WebApi.retrieveMultipleRecords(_entityName, "?fetchXml=" + encodeURIComponent(_fetchXml)).then(function(result:any) {
         callback(result);
-      }, function(result:any) {
-        console.log('error: ' + result);
-      });
+      }, console.log);
     },
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 

@@ -5,10 +5,12 @@ gulp.task('default', function() {
   console.log('Hello Everyone !!!');
 });
 
-gulp.task('build-crm-module', function() {
+gulp.task('build-crm-module', function(done) {
   clearBuildPluginFolder();
   var itemsToReplace = copyNecessaryFiles();
   replaceLinksInMainPage(itemsToReplace);
+
+  done();
 });
 
 const TARGET_DIR = 'build-crm-module';
