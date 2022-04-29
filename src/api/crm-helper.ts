@@ -19,15 +19,6 @@ export interface IEntityMeta {
   columns: IEntityColumn[]
 }
 
-interface EventArtgs {
-  cancel : boolean,
-}
-
-interface ItemsEventArtgs {
-  cancel : boolean,
-  ids : string[],
-}
-
 export interface IXrmAPI {
   xrm: any,
   title?: string,
@@ -37,6 +28,7 @@ export interface IXrmAPI {
   allowRefreshGridViewButton?: boolean,
   allowOpenInNewWindowButton?: boolean,
   fetchXml?: string;
+  layoutJson?: string;
   entityViewGuid?: string,
   customFilterConditions?: string[],
 }
@@ -61,6 +53,7 @@ export const XrmHelper = (function() {
   const onReadyCallbacks : { (xrm: IXrmAPI): void; } [] = [];
 
   let _fetchXml: string;
+  let _layoutJson: string | undefined;
   let _entityName: string;
   let _entityViewGuid: string | undefined;
   let _entityObject: number | undefined;
@@ -146,9 +139,9 @@ export const XrmHelper = (function() {
   };
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
-  * private _init: (layoutJson : (string | undefined)) => void;
+  * private _init: () => void;
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-  const _init = (layoutJson : (string | undefined)) => {
+  const _init = () => {
     if(!_fetchXml) {
       throw new Error('fetchXml is required');
     }
@@ -158,7 +151,7 @@ export const XrmHelper = (function() {
     }
 
     const fetch : Document = (new DOMParser()).parseFromString(_fetchXml, 'text/xml');
-    const layout = layoutJson ? JSON.parse(layoutJson) : undefined;
+    const layout = _layoutJson ? JSON.parse(_layoutJson) : undefined;
 
     const entityElem = fetch && fetch.getElementsByTagName('fetch')[0]?.getElementsByTagName('entity')[0];
     const entityElemName = entityElem?.getAttribute('name');
@@ -292,20 +285,21 @@ export const XrmHelper = (function() {
       _xrmAPI = xrmAPI;
 
       _entityViewGuid = _xrmAPI.entityViewGuid && _xrmAPI.entityViewGuid;
-      let layoutJson : (string | undefined) = undefined;
 
       if(!_xrmAPI.fetchXml) {
         if(_entityViewGuid) {
-          _xrmAPI.xrm.WebApi.retrieveRecord('savedquery', _entityViewGuid, '$select=name,fetchxml,layoutjson,returnedtypecode')
+          _xrmAPI.xrm.WebApi
+            .retrieveRecord('savedquery', _entityViewGuid, '$select=name,fetchxml,layoutjson,returnedtypecode')
             .then(function(record: any) {
               _fetchXml = record.fetchxml;
-              layoutJson = record.layoutjson;
-              _init(layoutJson);
+              _layoutJson = record.layoutjson;
+              _init();
             });
         }
       } else {
         _fetchXml = _xrmAPI.fetchXml;
-        _init(layoutJson);
+        _layoutJson = _xrmAPI.layoutJson;
+        _init();
       }
     },
 

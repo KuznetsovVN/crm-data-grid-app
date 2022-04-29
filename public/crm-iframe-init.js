@@ -31,6 +31,9 @@ function onload () {
         /* Type: string | undefined */
         fetchXml: undefined,
 
+        /* Type: string | undefined */
+        layoutJson: undefined,
+
         /* Type: string | undefined | '00000000-0000-0000-00AA-000010001004' */
         entityViewGuid: undefined,
 
