@@ -175,7 +175,6 @@ export const XrmHelper = (function() {
 
     const entityNames : string[] = [ _entityName ];
     let fieldNames : string[] = [];
-    const columnMetas : any[] = [];
     const linkEntities : any[] = [];
 
     for (let i = 0; i < entityElem.children.length; i++) {
@@ -218,40 +217,39 @@ export const XrmHelper = (function() {
       fieldNames = fieldNames.sort((a, b) => order.indexOf(a) - order.indexOf(b) );
     }
 
-    for(let i = 0; i < fieldNames.length; i++) {
-      const cell = layout && layout.Rows[0].Cells.find((cell:any) => cell.Name === fieldNames[i]);
-      const meta = {
-        fieldName: fieldNames[i],
-        width: cell ? cell.Width : 100,
-        isHidden: layout ? (cell === undefined ? true : cell.IsHidden) : false,
-      };
-      columnMetas.push(meta);
-    }
-
     /* get entity definitions */
 
     const columnNames : string[] = fieldNames.map((fieldName) => fieldName.split('.').at(-1) ?? '');
 
     _getMultipleEntityDefinitions(entityNames, columnNames).then((entityDefinitions:any[]) => {
-      for (let i = 0; i < fieldNames.length; i++) {
-        const columnMeta = columnMetas.find((column) => column.fieldName === fieldNames[i]);
-        const name = columnMeta.fieldName.split('.').at(-1);
-        let fieldName = columnMeta.fieldName;
+      for(let i = 0; i < fieldNames.length; i++) {
+        const cell = layout && layout.Rows[0].Cells.find((cell:any) => cell.Name === fieldNames[i]);
+        const width = cell ? cell.Width : 100;
+        const isHidden = layout ? (cell === undefined ? true : cell.IsHidden) : false;
+
+        let fieldName = fieldNames[i];
+        const isLinkEntity = fieldName.split('.').length > 1;
+
+        const alias = isLinkEntity ? fieldName.split('.')[0] : undefined;
+        const name = isLinkEntity ? fieldName.split('.')[1] ?? fieldName : fieldName;
 
         const entityDefinition = entityDefinitions.find((def) => { return def.name === name; });
 
         const isPrimary = entityDefinition?.isPrimary ?? false;
         const isLookup = entityDefinition?.isLookup ?? false;
-        fieldName = isLookup ? `_${fieldName}_value` : fieldName;
+        if(isLookup && !isLinkEntity) {
+          fieldName = `_${fieldName}_value`;
+        }
         let displayName = entityDefinition?.displayName ?? name;
 
-        const isLinkEntity = fieldName.split('.').length > 1;
         if(isLinkEntity) {
-          const alias = fieldName.split('.')[0];
           const link = linkEntities.find((link) => link.alias === alias);
-
-          const relatedDisplayName = entityDefinitions.find((def) => def.name === link.to)?.displayName;
-          displayName = displayName + ` ( ${relatedDisplayName ?? link.name} )`;
+          if(link) {
+            const relatedDisplayName = entityDefinitions.find((def) => def.name === link.to)?.displayName;
+            displayName = displayName + ` ( ${relatedDisplayName ?? link.name} )`;
+          } else {
+            displayName = fieldName;
+          }
         }
 
         const countOfVisibleColumns = _columns.filter((c) => c.isHidden !== true).length;
@@ -259,10 +257,10 @@ export const XrmHelper = (function() {
         const column : IEntityColumn = {
           name: name,
           isPrimary: isPrimary,
-          isHidden: columnMeta.isHidden,
+          isHidden: isHidden,
           fieldName: fieldName,
           displayName: displayName,
-          width: columnMeta.width,
+          width: width,
           isLookup: isLookup,
           hasLink: countOfVisibleColumns === 0 || isLookup,
           isSorted: orderElem && orderElem.getAttribute('attribute') === name,
@@ -376,7 +374,9 @@ export const XrmHelper = (function() {
         return;
       }
 
-      _xrmAPI.xrm.WebApi.retrieveMultipleRecords(_entityName, query).then(callback, console.log);
+      _xrmAPI.xrm.WebApi
+        .retrieveMultipleRecords(_entityName, query)
+        .then(callback, console.log);
     },
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
@@ -388,9 +388,9 @@ export const XrmHelper = (function() {
         return;
       }
 
-      _xrmAPI.xrm.WebApi.retrieveMultipleRecords(_entityName, "?fetchXml=" + encodeURIComponent(_fetchXml)).then(function(result:any) {
-        callback(result);
-      }, console.log);
+      _xrmAPI.xrm.WebApi
+        .retrieveMultipleRecords(_entityName, "?fetchXml=" + encodeURIComponent(_fetchXml))
+        .then(callback, console.log);
     },
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
