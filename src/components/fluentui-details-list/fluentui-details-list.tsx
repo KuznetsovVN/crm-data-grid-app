@@ -272,10 +272,8 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
 
   private _onItemInvoked(item: { [key: string]: any }): void {
     const entityName = XrmHelper.getEntityMeta()?.name;
-    console.log('entityName: ' + entityName);
-    console.log('item.key: ' + item.key);
     if(entityName) {
-      XrmHelper.openForm(entityName, item.key, true);
+      XrmHelper.openForm(entityName, item.key);
     }
   }
 

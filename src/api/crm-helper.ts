@@ -4,6 +4,7 @@ export interface IEntityColumn {
   displayName: string,
   width: number;
   isPrimary?: boolean,
+  isPrimaryName?: boolean,
   isLookup?: boolean,
   isHidden?: boolean,
   hasLink?: boolean,
@@ -95,6 +96,7 @@ export const XrmHelper = (function() {
           result.push({
             name: val.LogicalName,
             isPrimary: val.IsPrimaryId,
+            isPrimaryName: val.IsPrimaryName,
             isLookup: val['@odata.type'] === "#Microsoft.Dynamics.CRM.LookupAttributeMetadata",
             displayName: val.DisplayName.LocalizedLabels[0].Label,
           });
@@ -119,6 +121,9 @@ export const XrmHelper = (function() {
     return element;
   };
 
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+  * private _applyCustomFilterConditions: (fetchXml : string, conditions : string[]) => string;
+  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
   const _applyCustomFilterConditions = (fetchXml : string, conditions : string[]) : string => {
     let result : string = fetchXml;
     if(_xrmAPI.customFilterConditions && _xrmAPI.customFilterConditions.length > 0) {
@@ -229,6 +234,7 @@ export const XrmHelper = (function() {
         const entityDefinition = entityDefinitions.find((def) => { return def.name === name; });
 
         const isPrimary = entityDefinition?.isPrimary ?? false;
+        const isPrimaryName = entityDefinition?.isPrimaryName ?? false;
         const isLookup = entityDefinition?.isLookup ?? false;
         if(isLookup && !isLinkEntity) {
           fieldName = `_${fieldName}_value`;
@@ -250,12 +256,13 @@ export const XrmHelper = (function() {
         const column : IEntityColumn = {
           name: name,
           isPrimary: isPrimary,
+          isPrimaryName: isPrimaryName,
           isHidden: isHidden,
           fieldName: fieldName,
           displayName: displayName,
           width: width,
           isLookup: isLookup,
-          hasLink: countOfVisibleColumns === 0 || isLookup,
+          hasLink: isPrimaryName || isLookup,
           isSorted: orderElem && orderElem.getAttribute('attribute') === name,
           isSortedDescending: orderElem && orderElem.getAttribute('descending') === 'true',
         };
@@ -394,16 +401,14 @@ export const XrmHelper = (function() {
       if(!(_xrmAPI && _xrmAPI.xrm))
         return undefined;
 
-        const entityFormOptions : any = {
-          entityName: entityName,
-          entityId: entityId,
-        };
-
-        if(inNewWindow === true) {
-          entityFormOptions.openInNewWindow = true;
+        if(inNewWindow) {
+          const extraqs = 'id={' + entityId +'}';
+          const pageUrl = _xrmAPI.xrm.Page.context.getClientUrl();
+          const url = pageUrl + '/main.aspx?etn=' + entityName + '&pagetype=entityrecord&extraqs=' + encodeURIComponent(extraqs);
+          window.open(url, '_blank');
+        } else {
+          return _xrmAPI.xrm.Utility.openEntityForm(entityName, entityId);
         }
-
-        return _xrmAPI.xrm.Navigation.openForm(entityFormOptions);
     },
 
   };
