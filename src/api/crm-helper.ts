@@ -53,7 +53,7 @@ export const XrmHelper = (function() {
   const onReadyCallbacks : { (xrm: IXrmAPI): void; } [] = [];
 
   let _fetchXml: string;
-  let _layoutJson: string | undefined;
+  let _layoutJson: string | object | undefined;
   let _entityName: string;
   let _entityViewGuid: string | undefined;
   let _entityObject: number | undefined;
@@ -151,7 +151,7 @@ export const XrmHelper = (function() {
     }
 
     const fetch : Document = (new DOMParser()).parseFromString(_fetchXml, 'text/xml');
-    const layout = _layoutJson ? JSON.parse(_layoutJson) : undefined;
+    const layout = typeof _layoutJson === 'string' ? JSON.parse(_layoutJson) : _layoutJson;
 
     const entityElem = fetch && fetch.getElementsByTagName('fetch')[0]?.getElementsByTagName('entity')[0];
     const entityElemName = entityElem?.getAttribute('name');
@@ -205,8 +205,8 @@ export const XrmHelper = (function() {
 
     /* sort column names is available */
 
-    if(layout) {
-      const order = layout.Rows[0].Cells.map((cell:any) => cell.Name);
+    if(layout && layout.Rows) {
+      const order = layout.Rows[0]?.Cells?.map((cell:any) => cell.Name) ?? [];
       fieldNames = fieldNames.sort((a, b) => order.indexOf(a) - order.indexOf(b) );
     }
 
@@ -216,7 +216,7 @@ export const XrmHelper = (function() {
 
     _getMultipleEntityDefinitions(entityNames, columnNames).then((entityDefinitions:any[]) => {
       for(let i = 0; i < fieldNames.length; i++) {
-        const cell = layout && layout.Rows[0].Cells.find((cell:any) => cell.Name === fieldNames[i]);
+        const cell = layout && layout.Rows && layout.Rows[0]?.Cells?.find((cell:any) => cell.Name === fieldNames[i]);
         const width = cell ? cell.Width : 100;
         const isHidden = layout ? (cell === undefined ? true : cell.IsHidden) : false;
 

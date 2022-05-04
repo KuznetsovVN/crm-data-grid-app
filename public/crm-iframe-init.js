@@ -31,7 +31,7 @@ function onload () {
         /* Type: string | undefined */
         fetchXml: undefined,
 
-        /* Type: string | undefined */
+        /* Type: string | object | undefined */
         layoutJson: undefined,
 
         /* Type: string | undefined | '00000000-0000-0000-00AA-000010001004' */
