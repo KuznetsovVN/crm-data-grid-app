@@ -32,6 +32,7 @@ export interface IXrmAPI {
   layoutJson?: string;
   entityViewGuid?: string,
   customFilterConditions?: string[],
+  commandBarItems?: any
 }
 
 const win : { [key: string] : any } = (window as { [key: string]: any });
@@ -324,6 +325,7 @@ export const XrmHelper = (function() {
         allowOpenAssociatedRecordsButton: _xrmAPI?.allowOpenAssociatedRecordsButton ?? false,
         allowRefreshGridViewButton: _xrmAPI?.allowRefreshGridViewButton ?? false,
         allowOpenInNewWindowButton: _xrmAPI?.allowOpenInNewWindowButton ?? false,
+        commandBarItems: _xrmAPI?.commandBarItems ?? []
       };
     },
 

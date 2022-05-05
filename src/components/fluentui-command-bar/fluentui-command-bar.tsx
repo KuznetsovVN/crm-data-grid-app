@@ -53,6 +53,16 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
     rootDisabled: { backgroundColor: 'transparent' },
   };
 
+  const _buttonStylesActive: IButtonStyles = {
+    textContainer: { color: '#505050' },
+    label: { },
+    labelHovered: { color: '#0078D4' },
+    icon: { },
+    root: { backgroundColor: 'transparent' },
+    rootDisabled: { backgroundColor: 'transparent' },
+    rootHovered: { backgroundColor: '#FEFEFE' }
+  };
+
   const _items: ICommandBarItemProps[] = [
     {
       key: 'caption',
@@ -62,6 +72,18 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
       buttonStyles: _buttonStyles,
     }
   ];
+  if (state.uiConfig.commandBarItems) {
+    state.uiConfig.commandBarItems.forEach((element: any) => {
+      _items.push({
+        key: element.key,
+        text: element.text,
+        disabled: typeof element.disabled === 'function' ? element.disabled() : element.disabled,
+        iconProps: { iconName: element.iconName },
+        onClick: () => { if (typeof element.clickHandler === 'function') { element.clickHandler(); } },
+        buttonStyles: _buttonStylesActive
+      })
+    });
+  }
 
   const _farItems: ICommandBarItemProps[] = [];
   if(state.uiConfig.allowAddButton === true) {

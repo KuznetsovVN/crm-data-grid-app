@@ -1,6 +1,6 @@
 function onload () {
   const iFrameElem = Xrm.Page.getControl("IFRAME_kuzn_crm_datagrid_html");
-  iFrameElem.setSrc("https://srv-democrm90.gmcs.ru/LearnKuznetsov/WebResources/kuzn_crm-datagrid-html");
+  iFrameElem.setSrc("https://srv-democrm/LearnKuznetsov/WebResources/kuzn_crm-datagrid-html");
   iFrameElem.getObject().onload = function() {
     var iFrameWindow = iFrameElem.getObject().contentWindow;
 
@@ -40,6 +40,8 @@ function onload () {
         /* Type: array | undefined | [ '<condition attribute="new_opportunityid" operator="eq" value="{58695D1F-2ABB-EC11-ACE6-005056A670CA}" />' ] */
         customFilterConditions : [],
 
+        /* Type: array | undefined | { key: "btn", text: "Caption", iconName: "Edit", disabled: false, clickHandler: () => { console.log("pressed") } } */
+        commandBarItems: []
       });
     }
   };
