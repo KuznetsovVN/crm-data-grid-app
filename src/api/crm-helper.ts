@@ -300,7 +300,7 @@ export const XrmHelper = (function() {
             .retrieveRecord('savedquery', _entityViewGuid, '$select=name,fetchxml,layoutjson,returnedtypecode')
             .then(function(record: any) {
               _fetchXml = record.fetchxml;
-              _layoutJson = record.layoutjson;
+              _layoutJson = _xrmAPI.layoutJson || record.layoutjson;
               _init();
             });
         }
