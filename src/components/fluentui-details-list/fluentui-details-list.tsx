@@ -108,7 +108,7 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
   }
 
   public render() {
-    const { columns, items, selectionDetails } = this.state;
+    const { columns, items } = this.state;
 
     return (
       <div>
@@ -147,12 +147,6 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
       </div>
     );
   }
-
-  // public componentDidUpdate(previousProps: {}, previousState: IDetailsListDocumentsState) {
-  //   if (previousState.isModalSelection !== this.state.isModalSelection && !this.state.isModalSelection) {
-  //     this._selection.setAllSelected(false);
-  //   }
-  // }
 
   private getAvailableGridHeight() : number {
     const body = document.body;
@@ -233,7 +227,6 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
           const fieldText = data[column.fieldName + ODATA_FORMATTED_POSTFIX] ?? data[fieldName];
           let fieldValue = fieldText;
           let entityName;
-          // const entityId = data[meta.columns.find((entityColumn) => entityColumn.isPrimary === true)?.fieldName ?? column.name];
 
           if(metaColumn.hasLink) {
             fieldValue = (metaColumn.isLookup === true) ? data[metaColumn.fieldName] : entityId;

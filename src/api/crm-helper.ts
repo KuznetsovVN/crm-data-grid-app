@@ -252,8 +252,6 @@ export const XrmHelper = (function() {
           }
         }
 
-        const countOfVisibleColumns = _columns.filter((c) => c.isHidden !== true).length;
-
         const column : IEntityColumn = {
           name: name,
           isPrimary: isPrimary,

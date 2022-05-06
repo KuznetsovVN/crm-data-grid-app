@@ -81,7 +81,7 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
         iconProps: { iconName: element.iconName },
         onClick: () => { if (typeof element.clickHandler === 'function') { element.clickHandler(); } },
         buttonStyles: _buttonStylesActive
-      })
+      });
     });
   }
 
