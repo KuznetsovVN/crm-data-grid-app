@@ -34,7 +34,7 @@ function onload () {
         /* Type: string | object | undefined */
         layoutJson: undefined,
 
-        /* Type: string | undefined | '00000000-0000-0000-00AA-000010001004' */
+        /* Type: string | undefined | '00000000-0000-0000-00AA-000010001004' | [{ name: 'Мои Контакты', guid: '00000000-0000-0000-00AA-000010001004', active: true }] */
         entityViewGuid: undefined,
 
         /* Type: array | undefined | [ '<condition attribute="new_opportunityid" operator="eq" value="{58695D1F-2ABB-EC11-ACE6-005056A670CA}" />' ] */

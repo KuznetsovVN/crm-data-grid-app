@@ -44,15 +44,6 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
 
     this._allItems = [];
     this._columns = [];
-
-    XrmHelper.onReady(() => {
-      this.setState({
-        uiConfig: XrmHelper.getUIConfig()
-      });
-      this.refreshColumns();
-      this.refreshContent();
-    });
-
     this._selection = new Selection({
       onSelectionChanged: () => {
         const selectionKeys : string[] = this._getSelectionKeys();
@@ -65,12 +56,21 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
     });
 
     this.state = {
-      uiConfig: XrmHelper.getUIConfig(),
+      config: XrmHelper.getConfig(),
       items: this._allItems,
       columns: this._columns,
       selectionDetails: this._getSelectionKeys().join(','),
       searchValue: '',
     };
+
+    XrmHelper.onReady(() => {
+      this.setState({
+        config: XrmHelper.getConfig(),
+      });
+
+      this.refreshColumns();
+      this.refreshContent();
+    });
   }
 
   private cmdGetSelectedCount() {
@@ -80,7 +80,7 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
   private cmdOpen() {
     const selectionKeys = this._getSelectionKeys();
     if(selectionKeys.length > 0) {
-      const entityName = XrmHelper.getEntityMeta()?.name;
+      const entityName = this.state.config.entityName;
       if(entityName) {
         const entityId = selectionKeys[0];
         XrmHelper.openForm(entityName, entityId);
@@ -91,7 +91,7 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
   private cmdOpenInNewWindow() {
     const selectionKeys = this._getSelectionKeys();
     if(selectionKeys.length > 0) {
-      const entityName = XrmHelper.getEntityMeta()?.name;
+      const entityName = this.state.config.entityName;
       if(entityName) {
         for(let i = 0; i < selectionKeys.length; i++) {
           const entityId = selectionKeys[i];
@@ -114,7 +114,7 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
       <div>
         <FluentUIContextualMenu getSelectedCount={this.cmdGetSelectedCount.bind(this)} onOpen={this.cmdOpen.bind(this)} onOpenInNewWindow={this.cmdOpenInNewWindow.bind(this)} onRefreshGrid={this.cmdRefreshContent.bind(this)} />
         <FluentUICommandBar onOpenInNewWindow={this.cmdOpenInNewWindow.bind(this)} onRefreshGrid={this.cmdRefreshContent.bind(this)} />
-        {this.state.uiConfig.allowSearchBox ? <FluentUISearchBox onSearch={this._onSearch.bind(this)} /> : ''}
+        {this.state.config.allowSearchBox ? <FluentUISearchBox onSearch={this._onSearch.bind(this)} /> : ''}
 
         <div style={{ 'height': `${this.getAvailableGridHeight()}px`, 'overflowY' : 'auto' }}>
           { items.length > 0 ? (
@@ -151,19 +151,15 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
   private getAvailableGridHeight() : number {
     const body = document.body;
     const html = document.documentElement;
-    const heightOfOtherControls = this.state.uiConfig.allowSearchBox ? 80 : 40; // CommandBar & SearchBox
+    const heightOfOtherControls = this.state.config.allowSearchBox ? 80 : 40; // CommandBar & SearchBox
     return Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight ) - heightOfOtherControls;
   }
 
   private refreshColumns() {
-    const meta = XrmHelper.getEntityMeta();
-
-    if(meta === undefined)
-      return;
-
     const margin = 44; // gridCell { margin-left: 12px, margin-right: 32px }
+    const columns = this.state.config.columns;
 
-    this._columns = meta.columns
+    this._columns = columns
       .filter((entityColumn: IEntityColumn) => entityColumn.isHidden !== true)
       .map((entityColumn: IEntityColumn) => {
         return {
@@ -185,8 +181,8 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
               <div>
                 {
                   entityColumn.hasLink
-                    ? <Link key={item} onClick={() => { const linkItem = item[column?.fieldName ?? '']; XrmHelper.openForm(linkItem.entityName, linkItem.value); } }>{item[column?.fieldName || ''].text}</Link>
-                    : item[column?.fieldName || ''].text
+                    ? <Link key={item} onClick={() => { const linkItem = item[column?.fieldName ?? '']; XrmHelper.openForm(linkItem.entityName, linkItem.value); } }>{item[column?.fieldName || '']?.text}</Link>
+                    : item[column?.fieldName || '']?.text
                 }
               </div>
             ),
@@ -199,28 +195,26 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
   }
 
   private refreshContent() {
-    this._allItems = [];
-    this.setState({
-      items: this._allItems
-    });
-
     XrmHelper.getDataByFetchXml((data: any) => {
+      this._allItems = [];
+      this.setState({
+        items: this._allItems
+      });
+
       if(data === undefined)
         return;
 
-      const meta = XrmHelper.getEntityMeta();
-      if(meta?.columns === undefined)
-        return;
+      const columns = this.state.config.columns;
 
       data.entities.forEach((data : any) => {
-        const entityId = data[meta.columns.find((entityColumn) => entityColumn.isPrimary === true)?.fieldName ?? ''];
+        const entityId = data[columns.find((entityColumn) => entityColumn.isPrimary === true)?.fieldName ?? ''];
 
         const item : { [key: string]: IDetailsListItem | string } = {
           key: entityId
         };
 
         this._columns.forEach((column : IColumn) => {
-          const metaColumn = meta.columns.find((entityColumn) => entityColumn.fieldName === column.fieldName);
+          const metaColumn = columns.find((entityColumn) => entityColumn.fieldName === column.fieldName);
           if(!metaColumn) { throw new Error('meta column not found'); }
 
           const fieldName = column.fieldName ?? column.name;
@@ -230,7 +224,7 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
 
           if(metaColumn.hasLink) {
             fieldValue = (metaColumn.isLookup === true) ? data[metaColumn.fieldName] : entityId;
-            entityName = (metaColumn.isLookup === true) ? data[column.fieldName + ODATA_LOOKUPLOGICALNAME] : meta.name;
+            entityName = (metaColumn.isLookup === true) ? data[column.fieldName + ODATA_LOOKUPLOGICALNAME] : this.state.config.entityName;
           }
 
           item[fieldName] = {
@@ -264,7 +258,7 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
   }
 
   private _onItemInvoked(item: { [key: string]: any }): void {
-    const entityName = XrmHelper.getEntityMeta()?.name;
+    const entityName = this.state.config.entityName;
     if(entityName) {
       XrmHelper.openForm(entityName, item.key);
     }
@@ -285,10 +279,9 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
   }
 
   private _onColumnClick = (ev: React.MouseEvent<HTMLElement>, column: IColumn): void => {
-    const { columns, items } = this.state;
-    const newColumns: IColumn[] = columns.slice();
-    const currColumn: IColumn = newColumns.filter(currCol => column.key === currCol.key)[0];
-    newColumns.forEach((newCol: IColumn) => {
+    this._columns = this._columns.slice();
+    const currColumn: IColumn = this._columns.filter(currCol => column.key === currCol.key)[0];
+    this._columns.forEach((newCol: IColumn) => {
       if (newCol === currColumn) {
         currColumn.isSortedDescending = !currColumn.isSortedDescending;
         currColumn.isSorted = true;
@@ -297,10 +290,11 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
         newCol.isSortedDescending = true;
       }
     });
-    const newItems = _copyAndSort(items, currColumn.fieldName || currColumn.name, currColumn.isSortedDescending);
+
+    this._allItems = _copyAndSort(this._allItems, currColumn.fieldName || currColumn.name, currColumn.isSortedDescending);
     this.setState({
-      columns: newColumns,
-      items: newItems,
+      columns: this._columns,
+      items: this._allItems,
     });
   };
 }

@@ -4,7 +4,7 @@ import { initializeIcons } from '@fluentui/react';
 import { CommandBar, ICommandBarItemProps, ICommandBarStyles } from '@fluentui/react/lib/CommandBar';
 import { IButtonStyles } from '@fluentui/react/lib/Button';
 
-import { XrmHelper } from '../../api/crm-helper';
+import { IEntityViewItem, XrmHelper } from '../../api/crm-helper';
 
 initializeIcons();
 
@@ -13,22 +13,22 @@ export interface IFluentUICommandBarProps {
   onRefreshGrid: () => void,
 }
 
+let subscribeOnReadyEvent = true;
+
 export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren<IFluentUICommandBarProps>> = (props: React.PropsWithChildren<IFluentUICommandBarProps>) => {
   const [ state, setState ] = React.useState({
-    uiConfig: XrmHelper.getUIConfig(),
-    name: XrmHelper.getEntityMeta()?.name || '',
-    displayName: XrmHelper.getEntityMeta()?.displayName || '',
-    displayNameCollection: XrmHelper.getEntityMeta()?.displayCollectionName || '',
+    config: XrmHelper.getConfig(),
   });
 
-  XrmHelper.onReady(() => {
-    setState({
-      uiConfig: XrmHelper.getUIConfig(),
-      name: XrmHelper.getEntityMeta()?.name || '',
-      displayName: XrmHelper.getEntityMeta()?.displayName || '',
-      displayNameCollection: XrmHelper.getEntityMeta()?.displayCollectionName || '',
+  if(subscribeOnReadyEvent) {
+    subscribeOnReadyEvent = false;
+
+    XrmHelper.onReady(() => {
+      setState({
+        config: XrmHelper.getConfig(),
+      });
     });
-  });
+  }
 
   const _styles: ICommandBarStyles = {
     root: {
@@ -63,17 +63,43 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
     rootHovered: { backgroundColor: '#FEFEFE' }
   };
 
-  const _items: ICommandBarItemProps[] = [
-    {
+  const _items: ICommandBarItemProps[] = [];
+  if(state.config.title) {
+    _items.push({
       key: 'caption',
-      text: state.displayNameCollection,
-      ariaLabel: state.displayNameCollection,
+      text: state.config.title,
+      ariaLabel: state.config.title,
       disabled: true,
       buttonStyles: _buttonStyles,
-    }
-  ];
-  if (state.uiConfig.commandBarItems) {
-    state.uiConfig.commandBarItems.forEach((element: any) => {
+    });
+  }
+
+  /* entity view item list */
+
+  if (state.config.entityViewItems) {
+    const currentEntityViewItem : IEntityViewItem = state.config.entityViewItems.filter((item:IEntityViewItem) => item.active === true)[0];
+
+    const subMenuitems : any[] = [];
+    state.config.entityViewItems.forEach((item: IEntityViewItem) => {
+      subMenuitems.push({
+        key: item.guid,
+        name: item.name,
+        onClick: () => { state.config.onChangeEntityView && state.config.onChangeEntityView(item); },
+      });
+    });
+
+    _items.push({
+        key: 'activeEntityViewMenu',
+        name: currentEntityViewItem?.name ?? '',
+        subMenuProps: { items: subMenuitems },
+        buttonStyles: _buttonStyles,
+    });
+  }
+
+  /* custom command items */
+
+  if (state.config?.commandBarItems) {
+    state.config.commandBarItems.forEach((element: any) => {
       _items.push({
         key: element.key,
         text: element.text,
@@ -85,19 +111,21 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
     });
   }
 
+  /* basic command items */
+
   const _farItems: ICommandBarItemProps[] = [];
-  if(state.uiConfig.allowAddButton === true) {
+  if(state.config.allowAddButton === true) {
     _farItems.push({
       key: 'add',
-      text: 'Добавить запись ' + state.displayName + '.',
+      text: 'Добавить запись ' + state.config.displayName + '.',
       ariaLabel: 'Add',
       iconOnly: true,
       iconProps: { iconName: 'Add' },
-      onClick: () => { XrmHelper.openQuickCreate(state.name); },
+      onClick: () => { XrmHelper.openQuickCreate(state.config.entityName); },
       buttonStyles: _buttonStyles,
     });
   }
-  if(state.uiConfig.allowOpenAssociatedRecordsButton) {
+  if(state.config.allowOpenAssociatedRecordsButton) {
     _farItems.push({
       key: 'table',
       text: 'Просмотрите записи, связанные с этим представлением.',
@@ -108,7 +136,7 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
       buttonStyles: _buttonStyles,
     });
   }
-  if(state.uiConfig.allowRefreshGridViewButton) {
+  if(state.config.allowRefreshGridViewButton) {
     _farItems.push({
       key: 'refresh',
       text: 'Обновить содержимое таблицы.',
@@ -119,7 +147,7 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
       buttonStyles: _buttonStyles,
     });
   }
-  if(state.uiConfig.allowOpenInNewWindowButton) {
+  if(state.config.allowOpenInNewWindowButton) {
     _farItems.push({
       key: 'openInNewWindow',
       text: 'Открыть выбранные элементы таблицы.',

@@ -12,12 +12,27 @@ export interface IEntityColumn {
   isSortedDescending: boolean,
 }
 
-export interface IEntityMeta {
-  name: string,
-  object?: number | null,
+export interface IConfig {
+  entityName: string,
+  object?: number,
   displayName: string,
   displayCollectionName: string,
-  columns: IEntityColumn[]
+  title?: string,
+  columns: IEntityColumn[],
+  allowSearchBox: boolean,
+  allowAddButton: boolean,
+  allowOpenAssociatedRecordsButton: boolean,
+  allowRefreshGridViewButton: boolean,
+  allowOpenInNewWindowButton: boolean,
+  entityViewItems?: IEntityViewItem[],
+  onChangeEntityView?: (item : IEntityViewItem) => void,
+  commandBarItems: any[],
+}
+
+export interface IEntityViewItem {
+  name: string,
+  guid: string,
+  active?: boolean,
 }
 
 export interface IXrmAPI {
@@ -30,7 +45,7 @@ export interface IXrmAPI {
   allowOpenInNewWindowButton?: boolean,
   fetchXml?: string;
   layoutJson?: string;
-  entityViewGuid?: string,
+  entityViewGuid?: string | IEntityViewItem[],
   customFilterConditions?: string[],
   commandBarItems?: any
 }
@@ -57,9 +72,11 @@ export const XrmHelper = (function() {
   let _fetchXml: string;
   let _layoutJson: string | object | undefined;
   let _entityName: string;
-  let _entityViewGuid: string | undefined;
+  let _currentEntityViewGuid: string | undefined;
+  let _entityViewItems: IEntityViewItem[] | undefined;
   let _entityObject: number | undefined;
   let _entityDisplayName: string;
+  let _entityTitle: string;
   let _entityDisplayCollectionName: string;
   let _columns: IEntityColumn[];
 
@@ -274,12 +291,54 @@ export const XrmHelper = (function() {
       const primaryColumn = _columns.find((column) => column.isPrimary);
       _entityDisplayName = _xrmAPI.title ?? primaryColumn?.displayName ?? primaryColumn?.name ?? '';
       _entityDisplayCollectionName = _entityDisplayName;
+      _entityTitle = _entityViewItems ? _xrmAPI.title ?? '' : _entityDisplayCollectionName;
 
-      // It need call after initialization metadata
-      onReadyCallbacks.forEach((callback) => {
-        callback(_xrmAPI);
-      });
+      _refresh();
     });
+  };
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+  * private _refresh: () => void;
+  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+  const _refresh = () => {
+    // It need call after initialization metadata OR refresh render
+    onReadyCallbacks.forEach((callback) => {
+      callback(_xrmAPI);
+    });
+  };
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+  * public onChangeEntityView: (item) => void;
+  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+  const onChangeEntityView = (item: IEntityViewItem) => {
+    if(_currentEntityViewGuid !== item.guid) {
+      _currentEntityViewGuid = item.guid;
+
+      _entityViewItems?.forEach(viewItem => {
+        if(viewItem.guid === _currentEntityViewGuid) {
+          viewItem.active = true;
+        } else {
+          delete viewItem.active;
+        }
+      });
+
+      _retrieveRecordBySavedQuery().then(() => {
+        _init();
+        _refresh();
+      });
+    }
+  };
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+  * private _retrieveRecordBySavedQuery: () => void;
+  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+  const _retrieveRecordBySavedQuery = () => {
+    return _xrmAPI.xrm.WebApi
+      .retrieveRecord('savedquery', _currentEntityViewGuid, '$select=name,fetchxml,layoutjson,returnedtypecode')
+      .then(function(record: any) {
+        _fetchXml = record.fetchxml;
+        _layoutJson = _xrmAPI.layoutJson || record.layoutjson;
+      });
   };
 
   return {
@@ -290,17 +349,18 @@ export const XrmHelper = (function() {
     init: (xrmAPI: IXrmAPI) => {
       _xrmAPI = xrmAPI;
 
-      _entityViewGuid = _xrmAPI.entityViewGuid && _xrmAPI.entityViewGuid;
+      if(Array.isArray(_xrmAPI.entityViewGuid)) {
+        _entityViewItems = _xrmAPI.entityViewGuid;
+        _currentEntityViewGuid = _entityViewItems.filter((item) => item.active === true)[0]?.guid;
+      } else {
+        _currentEntityViewGuid = _xrmAPI.entityViewGuid;
+      }
 
       if(!_xrmAPI.fetchXml) {
-        if(_entityViewGuid) {
-          _xrmAPI.xrm.WebApi
-            .retrieveRecord('savedquery', _entityViewGuid, '$select=name,fetchxml,layoutjson,returnedtypecode')
-            .then(function(record: any) {
-              _fetchXml = record.fetchxml;
-              _layoutJson = _xrmAPI.layoutJson || record.layoutjson;
-              _init();
-            });
+        if(_currentEntityViewGuid) {
+          _retrieveRecordBySavedQuery().then(() => {
+            _init();
+          });
         }
       } else {
         _fetchXml = _xrmAPI.fetchXml;
@@ -316,30 +376,25 @@ export const XrmHelper = (function() {
       onReadyCallbacks.push(callback);
     },
 
-    getUIConfig: () => {
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+    * public getConfig : () => IConfig;
+    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    getConfig: () : IConfig => {
       return {
+        entityName: _entityName ?? '',
+        object: _entityObject,
+        displayName: _entityDisplayName ?? '',
+        displayCollectionName: _entityDisplayCollectionName ?? '',
+        title: _entityTitle,
+        columns: _columns ?? [],
         allowSearchBox: _xrmAPI?.allowSearchBox ?? false,
         allowAddButton: _xrmAPI?.allowAddButton ?? false,
         allowOpenAssociatedRecordsButton: _xrmAPI?.allowOpenAssociatedRecordsButton ?? false,
         allowRefreshGridViewButton: _xrmAPI?.allowRefreshGridViewButton ?? false,
         allowOpenInNewWindowButton: _xrmAPI?.allowOpenInNewWindowButton ?? false,
+        entityViewItems: _entityViewItems,
+        onChangeEntityView: onChangeEntityView,
         commandBarItems: _xrmAPI?.commandBarItems ?? []
-      };
-    },
-
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
-    * public getEntityMeta : () : (IEntityMeta | undefined) => IEntityMeta;
-    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    getEntityMeta : () : (IEntityMeta | undefined) => {
-      if(!(_xrmAPI && _xrmAPI.xrm))
-        return undefined;
-
-      return {
-        name: _entityName,
-        object: _entityObject,
-        displayName: _entityDisplayName,
-        displayCollectionName: _entityDisplayCollectionName,
-        columns: _columns
       };
     },
 
@@ -360,8 +415,8 @@ export const XrmHelper = (function() {
       if(!(_xrmAPI && _xrmAPI.xrm))
         return undefined;
 
-      const query = (_entityObject && _entityViewGuid)
-        ? `?etc=${_entityObject}&pagetype=ENTITYLIST&viewid=%7b${_entityViewGuid}%7d`
+      const query = (_entityObject && _currentEntityViewGuid)
+        ? `?etc=${_entityObject}&pagetype=ENTITYLIST&viewid=%7b${_currentEntityViewGuid}%7d`
         : `?pagetype=ENTITYLIST`;
       _xrmAPI.xrm.Navigation.openUrl("/main.aspx" + query);
     },

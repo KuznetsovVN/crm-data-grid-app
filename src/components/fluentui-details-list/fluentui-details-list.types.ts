@@ -1,11 +1,12 @@
 import { IColumn } from '@fluentui/react/lib/DetailsList';
+import { IConfig } from '../../api/crm-helper';
 
 export interface IDetailsListDocumentsProps {
   getSelectedItemIDsCallback: (ids : string[]) => string[];
 }
 
 export interface IDetailsListDocumentsState {
-  uiConfig: any,
+  config: IConfig,
   columns: IColumn[];
   items: { [key: string]: any }[];
   selectionDetails: string;
