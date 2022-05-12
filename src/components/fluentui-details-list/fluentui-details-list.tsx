@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { initializeIcons } from '@fluentui/react';
+import { TooltipHost, TooltipOverflowMode, ITooltipHostStyles } from '@fluentui/react/lib/Tooltip';
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn, ConstrainMode, IDetailsListStyles } from '@fluentui/react/lib/DetailsList';
 import { Link } from '@fluentui/react/lib/Link';
 
@@ -178,13 +179,17 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
             isPadded: true,
             onColumnClick: this._onColumnClick,
             onRender: (item, index, column) => (
-              <div>
-                {
-                  entityColumn.hasLink
-                    ? <Link key={item} onClick={() => { const linkItem = item[column?.fieldName ?? '']; XrmHelper.openForm(linkItem.entityName, linkItem.value); } }>{item[column?.fieldName || '']?.text}</Link>
-                    : item[column?.fieldName || '']?.text
-                }
-              </div>
+              <TooltipHost id={column?.name + '_tooltip'} content={item[column?.fieldName || '']?.text} overflowMode={TooltipOverflowMode.Parent}>
+                <span aria-describedby={column?.name + '_tooltip'}>
+                <div>
+                  {
+                    entityColumn.hasLink
+                      ? <Link key={item} onClick={() => { const linkItem = item[column?.fieldName ?? '']; XrmHelper.openForm(linkItem.entityName, linkItem.value); } }>{item[column?.fieldName || '']?.text}</Link>
+                      : item[column?.fieldName || '']?.text
+                  }
+                </div>
+                </span>
+              </TooltipHost>
             ),
           } as IColumn;
       });
