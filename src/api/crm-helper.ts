@@ -126,15 +126,16 @@ export const XrmHelper = (function() {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
   * private findOrCreateXmlElement: (parent : Element, name : string, etalon : string) => Element;
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-  const _findOrCreateXmlElement = (parent : Element, name : string, etalon : string) : Element => {
-    let element = parent.getElementsByTagName(name)[0];
-    if(!element) {
-      const _doc : Document = (new DOMParser()).parseFromString(etalon, 'text/xml');
-      const filter = _doc.getElementsByTagName(name)[0];
-      if(filter) {
+  const _findOrCreateXmlElement = (parent: Element, name: string, etalon: string): Element => {
+    let element = parent.parentElement?.querySelector('entity > filter[type=and]')
+
+    if (!element) {
+      const _doc: Document = (new DOMParser()).parseFromString(etalon, 'text/xml');
+      const filter = _doc.getElementsByTagName(name)[_doc.getElementsByTagName.length - 1];
+      if (filter) {
         parent.appendChild(filter);
       }
-      element = parent.getElementsByTagName('filter')[0];
+      element = parent.getElementsByTagName('filter')[parent.getElementsByTagName('filter').length - 1];
     }
     return element;
   };
