@@ -25,7 +25,7 @@ export interface IConfig {
   allowRefreshGridViewButton: boolean,
   allowOpenInNewWindowButton: boolean,
   entityViewItems?: IEntityViewItem[],
-  onChangeEntityView?: (item : IEntityViewItem) => void,
+  onChangeEntityView?: (item: IEntityViewItem) => void,
   commandBarItems: any[],
 }
 
@@ -50,24 +50,24 @@ export interface IXrmAPI {
   commandBarItems?: any
 }
 
-const win : { [key: string] : any } = (window as { [key: string]: any });
+const win: { [key: string]: any } = (window as { [key: string]: any });
 
 win['InitXrmAPI'] = (xrmAPI: IXrmAPI) => {
   XrmHelper.init(xrmAPI);
 };
 
-let _selectedItemIDs : string[] = [];
+let _selectedItemIDs: string[] = [];
 win['GetSelectedItemIDs'] = () => {
   return _selectedItemIDs;
 };
 
-win['_getSelectedItemKeysCallback'] = (ids : string[]) => {
+win['_getSelectedItemKeysCallback'] = (ids: string[]) => {
   _selectedItemIDs = ids;
 };
 
-export const XrmHelper = (function() {
+export const XrmHelper = (function () {
   let _xrmAPI: IXrmAPI;
-  const onReadyCallbacks : { (xrm: IXrmAPI): void; } [] = [];
+  const onReadyCallbacks: { (xrm: IXrmAPI): void; }[] = [];
 
   let _fetchXml: string;
   let _layoutJson: string | object | undefined;
@@ -83,15 +83,15 @@ export const XrmHelper = (function() {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
   * private _getEntityDefinitions: (entityNames: string[], attrNames: string[]) : Promise<any>;
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-  const _getMultipleEntityDefinitions = (entityNames: string[], attrNames: string[]) : Promise<any> => {
-    const arr : Promise<any>[] = [];
+  const _getMultipleEntityDefinitions = (entityNames: string[], attrNames: string[]): Promise<any> => {
+    const arr: Promise<any>[] = [];
 
-    entityNames.forEach((entityName : string) => {
+    entityNames.forEach((entityName: string) => {
       arr.push(_getEntityDefinitions(entityName, attrNames));
     });
 
-    return Promise.all(arr).then((result:any[]) => {
-      const res : any[] = [];
+    return Promise.all(arr).then((result: any[]) => {
+      const res: any[] = [];
       result.forEach((items) => {
         res.push(...items);
       });
@@ -102,15 +102,15 @@ export const XrmHelper = (function() {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
   * private _getEntityDefinitions: (entityName: string, attrNames: string[]) : Promise<any>;
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-  const _getEntityDefinitions = (entityName: string, attrNames: string[]) : Promise<any> => {
+  const _getEntityDefinitions = (entityName: string, attrNames: string[]): Promise<any> => {
     const pageUrl = _xrmAPI.xrm.Page.context.getClientUrl();
     const propertyValues = attrNames.map((val) => `'${val}'`).join(',');
     const request = pageUrl + '/api/data/v9.0/EntityDefinitions(LogicalName=\'' + entityName + '\')/Attributes?$filter=Microsoft.Dynamics.CRM.In(PropertyName=\'logicalname\',PropertyValues=[' + propertyValues + '])';
-    return fetch(request, { headers: { 'Accept': 'application/json' }})
+    return fetch(request, { headers: { 'Accept': 'application/json' } })
       .then(response => response.json())
-      .then(function(data) {
-        const result:any[] = [];
-        data.value.forEach((val:any) => {
+      .then(function (data) {
+        const result: any[] = [];
+        data.value.forEach((val: any) => {
           result.push({
             name: val.LogicalName,
             isPrimary: val.IsPrimaryId,
@@ -143,43 +143,43 @@ export const XrmHelper = (function() {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
   * private _applyCustomFilterConditions: (fetchXml : string, conditions : string[]) => string;
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-  const _applyCustomFilterConditions = (fetchXml : string, conditions : string[]) : string => {
-    let result : string = fetchXml;
-    if(_xrmAPI.customFilterConditions && _xrmAPI.customFilterConditions.length > 0) {
-        const fetch : Document = (new DOMParser()).parseFromString(fetchXml, 'text/xml');
-        const entityElem = fetch.getElementsByTagName('fetch')[0].getElementsByTagName('entity')[0];
-        const filterElem = _findOrCreateXmlElement(entityElem, 'filter', '<filter type="and" />');
+  const _applyCustomFilterConditions = (fetchXml: string, conditions: string[]): string => {
+    let result: string = fetchXml;
+    if (_xrmAPI.customFilterConditions && _xrmAPI.customFilterConditions.length > 0) {
+      const fetch: Document = (new DOMParser()).parseFromString(fetchXml, 'text/xml');
+      const entityElem = fetch.getElementsByTagName('fetch')[0].getElementsByTagName('entity')[0];
+      const filterElem = _findOrCreateXmlElement(entityElem, 'filter', '<filter type="and" />');
 
-        conditions.forEach((condition) => {
-          const doc : Document = (new DOMParser()).parseFromString(condition, 'text/xml');
-          const conditionElem = doc.getElementsByTagName('condition')[0];
-          if(conditionElem) {
-            filterElem.appendChild(conditionElem);
-          }
-        });
-        result = (new XMLSerializer()).serializeToString(fetch);
-      }
-      return result;
+      conditions.forEach((condition) => {
+        const doc: Document = (new DOMParser()).parseFromString(condition, 'text/xml');
+        const conditionElem = doc.getElementsByTagName('condition')[0];
+        if (conditionElem) {
+          filterElem.appendChild(conditionElem);
+        }
+      });
+      result = (new XMLSerializer()).serializeToString(fetch);
+    }
+    return result;
   };
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
   * private _init: () => void;
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
   const _init = () => {
-    if(!_fetchXml) {
+    if (!_fetchXml) {
       throw new Error('fetchXml is required');
     }
 
-    if(_xrmAPI.customFilterConditions && _xrmAPI.customFilterConditions.length > 0) {
+    if (_xrmAPI.customFilterConditions && _xrmAPI.customFilterConditions.length > 0) {
       _fetchXml = _applyCustomFilterConditions(_fetchXml, _xrmAPI.customFilterConditions);
     }
 
-    const fetch : Document = (new DOMParser()).parseFromString(_fetchXml, 'text/xml');
+    const fetch: Document = (new DOMParser()).parseFromString(_fetchXml, 'text/xml');
     const layout = typeof _layoutJson === 'string' ? JSON.parse(_layoutJson) : _layoutJson;
 
     const entityElem = fetch && fetch.getElementsByTagName('fetch')[0]?.getElementsByTagName('entity')[0];
     const entityElemName = entityElem?.getAttribute('name');
-    if(!entityElemName) {
+    if (!entityElemName) {
       throw new Error('Incoming fetchxml not have entity element or name attribute: ' + _fetchXml);
     }
     const orderElem = entityElem.getElementsByTagName('order')[0];
@@ -190,29 +190,29 @@ export const XrmHelper = (function() {
 
     /* columns names */
 
-    const entityNames : string[] = [ _entityName ];
-    let fieldNames : string[] = [];
-    const linkEntities : any[] = [];
+    const entityNames: string[] = [_entityName];
+    let fieldNames: string[] = [];
+    const linkEntities: any[] = [];
 
     for (let i = 0; i < entityElem.children.length; i++) {
       const elem = entityElem.children[i];
-      if(elem.nodeName === 'attribute') {
+      if (elem.nodeName === 'attribute') {
         const elemName = elem.getAttribute('name');
-        if(elemName) {
+        if (elemName) {
           fieldNames.push(elemName);
         }
-      } else if(elem.nodeName === 'link-entity') {
+      } else if (elem.nodeName === 'link-entity') {
         const linkAlias = elem.getAttribute('alias');
         const relatedEntityName = elem.getAttribute('name');
-        if(relatedEntityName) { entityNames.push(relatedEntityName); }
-        if(linkAlias) {
+        if (relatedEntityName) { entityNames.push(relatedEntityName); }
+        if (linkAlias) {
           const linkFrom = elem.getAttribute('from');
           const linkTo = elem.getAttribute('to');
 
           const linkAttributes = elem.getElementsByTagName('attribute');
-          for(let a = 0; a < linkAttributes.length; a++) {
+          for (let a = 0; a < linkAttributes.length; a++) {
             const linkName = linkAttributes[a].getAttribute('name');
-            if(linkName) {
+            if (linkName) {
               fieldNames.push(linkAlias + '.' + linkName);
             }
 
@@ -229,18 +229,18 @@ export const XrmHelper = (function() {
 
     /* sort column names is available */
 
-    if(layout && layout.Rows) {
-      const order = layout.Rows[0]?.Cells?.map((cell:any) => cell.Name) ?? [];
-      fieldNames = fieldNames.sort((a, b) => order.indexOf(a) - order.indexOf(b) );
+    if (layout && layout.Rows) {
+      const order = layout.Rows[0]?.Cells?.map((cell: any) => cell.Name) ?? [];
+      fieldNames = fieldNames.sort((a, b) => order.indexOf(a) - order.indexOf(b));
     }
 
     /* get entity definitions */
 
-    const columnNames : string[] = fieldNames.map((fieldName) => fieldName.split('.').at(-1) ?? '');
+    const columnNames: string[] = fieldNames.map((fieldName) => fieldName.split('.').at(-1) ?? '');
 
-    _getMultipleEntityDefinitions(entityNames, columnNames).then((entityDefinitions:any[]) => {
-      for(let i = 0; i < fieldNames.length; i++) {
-        const cell = layout && layout.Rows && layout.Rows[0]?.Cells?.find((cell:any) => cell.Name === fieldNames[i]);
+    _getMultipleEntityDefinitions(entityNames, columnNames).then((entityDefinitions: any[]) => {
+      for (let i = 0; i < fieldNames.length; i++) {
+        const cell = layout && layout.Rows && layout.Rows[0]?.Cells?.find((cell: any) => cell.Name === fieldNames[i]);
         const width = cell ? cell.Width : 100;
         const isHidden = layout ? (cell === undefined ? true : cell.IsHidden) : false;
 
@@ -255,14 +255,14 @@ export const XrmHelper = (function() {
         const isPrimary = entityDefinition?.isPrimary ?? false;
         const isPrimaryName = entityDefinition?.isPrimaryName ?? false;
         const isLookup = entityDefinition?.isLookup ?? false;
-        if(isLookup && !isLinkEntity) {
+        if (isLookup && !isLinkEntity) {
           fieldName = `_${fieldName}_value`;
         }
         let displayName = entityDefinition?.displayName ?? name;
 
-        if(isLinkEntity) {
+        if (isLinkEntity) {
           const link = linkEntities.find((link) => link.alias === alias);
-          if(link) {
+          if (link) {
             const relatedDisplayName = entityDefinitions.find((def) => def.name === link.to)?.displayName;
             displayName = displayName + ` ( ${relatedDisplayName ?? link.name} )`;
           } else {
@@ -270,7 +270,7 @@ export const XrmHelper = (function() {
           }
         }
 
-        const column : IEntityColumn = {
+        const column: IEntityColumn = {
           name: name,
           isPrimary: isPrimary,
           isPrimaryName: isPrimaryName,
@@ -312,11 +312,11 @@ export const XrmHelper = (function() {
   * public onChangeEntityView: (item) => void;
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
   const onChangeEntityView = (item: IEntityViewItem) => {
-    if(_currentEntityViewGuid !== item.guid) {
+    if (_currentEntityViewGuid !== item.guid) {
       _currentEntityViewGuid = item.guid;
 
       _entityViewItems?.forEach(viewItem => {
-        if(viewItem.guid === _currentEntityViewGuid) {
+        if (viewItem.guid === _currentEntityViewGuid) {
           viewItem.active = true;
         } else {
           delete viewItem.active;
@@ -330,13 +330,13 @@ export const XrmHelper = (function() {
     }
   };
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
-  * private _retrieveRecordBySavedQuery: () => void;
-  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+    * private _retrieveRecordBySavedQuery: () => void;
+    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
   const _retrieveRecordBySavedQuery = () => {
     return _xrmAPI.xrm.WebApi
       .retrieveRecord('savedquery', _currentEntityViewGuid, '$select=name,fetchxml,layoutjson,returnedtypecode')
-      .then(function(record: any) {
+      .then(function (record: any) {
         _fetchXml = record.fetchxml;
         _layoutJson = _xrmAPI.layoutJson || record.layoutjson;
       });
@@ -350,15 +350,15 @@ export const XrmHelper = (function() {
     init: (xrmAPI: IXrmAPI) => {
       _xrmAPI = xrmAPI;
 
-      if(Array.isArray(_xrmAPI.entityViewGuid)) {
+      if (Array.isArray(_xrmAPI.entityViewGuid)) {
         _entityViewItems = _xrmAPI.entityViewGuid;
         _currentEntityViewGuid = _entityViewItems.filter((item) => item.active === true)[0]?.guid;
       } else {
         _currentEntityViewGuid = _xrmAPI.entityViewGuid;
       }
 
-      if(!_xrmAPI.fetchXml) {
-        if(_currentEntityViewGuid) {
+      if (!_xrmAPI.fetchXml) {
+        if (_currentEntityViewGuid) {
           _retrieveRecordBySavedQuery().then(() => {
             _init();
           });
@@ -373,14 +373,14 @@ export const XrmHelper = (function() {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
     * public onReady : (callback: () => void) => void;
     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    onReady : (callback: () => void) => {
+    onReady: (callback: () => void) => {
       onReadyCallbacks.push(callback);
     },
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
     * public getConfig : () => IConfig;
     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    getConfig: () : IConfig => {
+    getConfig: (): IConfig => {
       return {
         entityName: _entityName ?? '',
         object: _entityObject,
@@ -402,8 +402,8 @@ export const XrmHelper = (function() {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
     * public openQuickCreate : (entityName: string) => void;
     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    openQuickCreate : (entityName: string) => {
-      if(!(_xrmAPI && _xrmAPI.xrm))
+    openQuickCreate: (entityName: string) => {
+      if (!(_xrmAPI && _xrmAPI.xrm))
         return undefined;
 
       _xrmAPI.xrm.Utility.openQuickCreate(entityName);
@@ -412,8 +412,8 @@ export const XrmHelper = (function() {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
     * public openSubGrid : () => void;
     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    openSubGrid : () => {
-      if(!(_xrmAPI && _xrmAPI.xrm))
+    openSubGrid: () => {
+      if (!(_xrmAPI && _xrmAPI.xrm))
         return undefined;
 
       const query = (_entityObject && _currentEntityViewGuid)
@@ -425,8 +425,8 @@ export const XrmHelper = (function() {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
     * public getData: (query : string, callback: any) => void;
     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    getData: (query : string, callback: any) => {
-      if(!(_xrmAPI && _xrmAPI.xrm)) {
+    getData: (query: string, callback: any) => {
+      if (!(_xrmAPI && _xrmAPI.xrm)) {
         callback(undefined);
         return;
       }
@@ -440,7 +440,7 @@ export const XrmHelper = (function() {
     * public getDataByFetchXml: (callback: any) => void;
     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     getDataByFetchXml: (callback: any) => {
-      if(!(_xrmAPI && _xrmAPI.xrm)) {
+      if (!(_xrmAPI && _xrmAPI.xrm)) {
         callback(undefined);
         return;
       }
@@ -453,18 +453,18 @@ export const XrmHelper = (function() {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
     * public openForm: (entityName : string, entityId : string) => void;
     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    openForm: (entityName : string, entityId : string, inNewWindow?: boolean) => {
-      if(!(_xrmAPI && _xrmAPI.xrm))
+    openForm: (entityName: string, entityId: string, inNewWindow?: boolean) => {
+      if (!(_xrmAPI && _xrmAPI.xrm))
         return undefined;
 
-        if(inNewWindow) {
-          const extraqs = 'id={' + entityId +'}';
-          const pageUrl = _xrmAPI.xrm.Page.context.getClientUrl();
-          const url = pageUrl + '/main.aspx?etn=' + entityName + '&pagetype=entityrecord&extraqs=' + encodeURIComponent(extraqs);
-          window.open(url, '_blank');
-        } else {
-          return _xrmAPI.xrm.Utility.openEntityForm(entityName, entityId);
-        }
+      if (inNewWindow) {
+        const extraqs = 'id={' + entityId + '}';
+        const pageUrl = _xrmAPI.xrm.Page.context.getClientUrl();
+        const url = pageUrl + '/main.aspx?etn=' + entityName + '&pagetype=entityrecord&extraqs=' + encodeURIComponent(extraqs);
+        window.open(url, '_blank');
+      } else {
+        return _xrmAPI.xrm.Utility.openEntityForm(entityName, entityId);
+      }
     },
 
   };
