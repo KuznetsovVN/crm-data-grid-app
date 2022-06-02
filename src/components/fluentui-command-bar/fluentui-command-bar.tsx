@@ -1,5 +1,4 @@
 import * as React from 'react';
-
 import { initializeIcons } from '@fluentui/react';
 import { CommandBar, ICommandBarItemProps, ICommandBarStyles } from '@fluentui/react/lib/CommandBar';
 import { IButtonStyles } from '@fluentui/react/lib/Button';
@@ -11,16 +10,17 @@ initializeIcons();
 export interface IFluentUICommandBarProps {
   onOpenInNewWindow: () => void,
   onRefreshGrid: () => void,
+  getSelectedCount: () => number
 }
 
 let subscribeOnReadyEvent = true;
 
 export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren<IFluentUICommandBarProps>> = (props: React.PropsWithChildren<IFluentUICommandBarProps>) => {
-  const [ state, setState ] = React.useState({
+  const [state, setState] = React.useState({
     config: XrmHelper.getConfig(),
   });
 
-  if(subscribeOnReadyEvent) {
+  if (subscribeOnReadyEvent) {
     subscribeOnReadyEvent = false;
 
     XrmHelper.onReady(() => {
@@ -38,10 +38,10 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
       padding: '0px 10px 0px 10px',
 
       selectors: {
-      '& [role=menuitem]': {
-        fontSize: 12,
+        '& [role=menuitem]': {
+          fontSize: 12,
+        },
       },
-    },
     }
   };
 
@@ -55,16 +55,16 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
 
   const _buttonStylesActive: IButtonStyles = {
     textContainer: { color: '#505050' },
-    label: { },
+    label: {},
     labelHovered: { color: '#0078D4' },
-    icon: { },
+    icon: {},
     root: { backgroundColor: 'transparent' },
     rootDisabled: { backgroundColor: 'transparent' },
     rootHovered: { backgroundColor: '#FEFEFE' }
   };
 
   const _items: ICommandBarItemProps[] = [];
-  if(state.config.title) {
+  if (state.config.title) {
     _items.push({
       key: 'caption',
       text: state.config.title,
@@ -77,9 +77,9 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
   /* entity view item list */
 
   if (state.config.entityViewItems) {
-    const currentEntityViewItem : IEntityViewItem = state.config.entityViewItems.filter((item:IEntityViewItem) => item.active === true)[0];
+    const currentEntityViewItem: IEntityViewItem = state.config.entityViewItems.filter((item: IEntityViewItem) => item.active === true)[0];
 
-    const subMenuitems : any[] = [];
+    const subMenuitems: any[] = [];
     state.config.entityViewItems.forEach((item: IEntityViewItem) => {
       subMenuitems.push({
         key: item.guid,
@@ -89,10 +89,23 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
     });
 
     _items.push({
-        key: 'activeEntityViewMenu',
-        name: currentEntityViewItem?.name ?? '',
-        subMenuProps: { items: subMenuitems },
-        buttonStyles: _buttonStyles,
+      key: 'activeEntityViewMenu',
+      name: currentEntityViewItem?.name ?? '',
+      subMenuProps: { items: subMenuitems },
+      buttonStyles: _buttonStyles,
+    });
+  }
+
+  if (state.config.allowEditButton === true) {
+    _items.push({
+      key: 'edit',
+      text: 'Изменить',
+      ariaLabel: 'Edit',
+      disabled: !(props.getSelectedCount() > 0),
+      iconOnly: false,
+      iconProps: { iconName: 'Edit' },
+      onClick: () => { XrmHelper.openBulkEdit(state.config.entityName); },
+      buttonStyles: _buttonStylesActive,
     });
   }
 
@@ -114,7 +127,7 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
   /* basic command items */
 
   const _farItems: ICommandBarItemProps[] = [];
-  if(state.config.allowAddButton === true) {
+  if (state.config.allowAddButton === true) {
     _farItems.push({
       key: 'add',
       text: 'Добавить запись ' + state.config.displayName + '.',
@@ -125,7 +138,7 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
       buttonStyles: _buttonStyles,
     });
   }
-  if(state.config.allowOpenAssociatedRecordsButton) {
+  if (state.config.allowOpenAssociatedRecordsButton) {
     _farItems.push({
       key: 'table',
       text: 'Просмотрите записи, связанные с этим представлением.',
@@ -136,7 +149,7 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
       buttonStyles: _buttonStyles,
     });
   }
-  if(state.config.allowRefreshGridViewButton) {
+  if (state.config.allowRefreshGridViewButton) {
     _farItems.push({
       key: 'refresh',
       text: 'Обновить содержимое таблицы.',
@@ -147,7 +160,7 @@ export const FluentUICommandBar: React.FunctionComponent<React.PropsWithChildren
       buttonStyles: _buttonStyles,
     });
   }
-  if(state.config.allowOpenInNewWindowButton) {
+  if (state.config.allowOpenInNewWindowButton) {
     _farItems.push({
       key: 'openInNewWindow',
       text: 'Открыть выбранные элементы таблицы.',

@@ -9,6 +9,9 @@ function onload () {
 
         /* [REQUIRED] Type: Xrm Namespace */
         xrm: Xrm,
+        
+        /* [REQUIRED] Type: XrmCore Namespace */
+        xrmCore: window.parent.XrmCore,
 
         /* Type: string | undefined | 'Контакты' */
         title: undefined,

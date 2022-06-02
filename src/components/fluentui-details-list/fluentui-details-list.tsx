@@ -1,6 +1,5 @@
 import * as React from 'react';
-
-import { initializeIcons } from '@fluentui/react';
+import { Icon, initializeIcons } from '@fluentui/react';
 import { TooltipHost, TooltipOverflowMode, ITooltipHostStyles } from '@fluentui/react/lib/Tooltip';
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn, ConstrainMode, IDetailsListStyles } from '@fluentui/react/lib/DetailsList';
 import { Link } from '@fluentui/react/lib/Link';
@@ -47,8 +46,8 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
     this._columns = [];
     this._selection = new Selection({
       onSelectionChanged: () => {
-        const selectionKeys : string[] = this._getSelectionKeys();
-        const selectionDetails : string = selectionKeys.join(',');
+        const selectionKeys: string[] = this._getSelectionKeys();
+        const selectionDetails: string = selectionKeys.join(',');
         this.props.getSelectedItemIDsCallback(selectionKeys);
         this.setState({
           selectionDetails: selectionDetails,
@@ -80,9 +79,9 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
 
   private cmdOpen() {
     const selectionKeys = this._getSelectionKeys();
-    if(selectionKeys.length > 0) {
+    if (selectionKeys.length > 0) {
       const entityName = this.state.config.entityName;
-      if(entityName) {
+      if (entityName) {
         const entityId = selectionKeys[0];
         XrmHelper.openForm(entityName, entityId);
       }
@@ -91,10 +90,10 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
 
   private cmdOpenInNewWindow() {
     const selectionKeys = this._getSelectionKeys();
-    if(selectionKeys.length > 0) {
+    if (selectionKeys.length > 0) {
       const entityName = this.state.config.entityName;
-      if(entityName) {
-        for(let i = 0; i < selectionKeys.length; i++) {
+      if (entityName) {
+        for (let i = 0; i < selectionKeys.length; i++) {
           const entityId = selectionKeys[i];
           XrmHelper.openForm(entityName, entityId, true);
         }
@@ -114,11 +113,11 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
     return (
       <div>
         <FluentUIContextualMenu getSelectedCount={this.cmdGetSelectedCount.bind(this)} onOpen={this.cmdOpen.bind(this)} onOpenInNewWindow={this.cmdOpenInNewWindow.bind(this)} onRefreshGrid={this.cmdRefreshContent.bind(this)} />
-        <FluentUICommandBar onOpenInNewWindow={this.cmdOpenInNewWindow.bind(this)} onRefreshGrid={this.cmdRefreshContent.bind(this)} />
+        <FluentUICommandBar onOpenInNewWindow={this.cmdOpenInNewWindow.bind(this)} onRefreshGrid={this.cmdRefreshContent.bind(this)} getSelectedCount={this.cmdGetSelectedCount.bind(this)} />
         {this.state.config.allowSearchBox ? <FluentUISearchBox onSearch={this._onSearch.bind(this)} /> : ''}
 
-        <div style={{ 'height': `${this.getAvailableGridHeight()}px`, 'overflowY' : 'auto' }}>
-          { items.length > 0 ? (
+        <div style={{ 'height': `${this.getAvailableGridHeight()}px`, 'overflowY': 'auto' }}>
+          {items.length > 0 ? (
             <DetailsList
               items={items}
               compact={true}
@@ -139,21 +138,22 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
               checkButtonAriaLabel="select row"
             />
           ) : (
-            <div style={{ 'textAlign' : 'center', 'padding' : '15px' }}>
+            <div style={{ 'textAlign': 'center', 'padding': '15px' }}>
               <img src={noDataImg} />
+              {/* <Icon iconName="snow" /> */}
               <p>Записи не найдены для этой сущности.</p>
             </div>
-          ) }
+          )}
         </div>
       </div>
     );
   }
 
-  private getAvailableGridHeight() : number {
+  private getAvailableGridHeight(): number {
     const body = document.body;
     const html = document.documentElement;
     const heightOfOtherControls = this.state.config.allowSearchBox ? 80 : 40; // CommandBar & SearchBox
-    return Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight ) - heightOfOtherControls;
+    return Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight) - heightOfOtherControls;
   }
 
   private refreshColumns() {
@@ -164,34 +164,34 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
       .filter((entityColumn: IEntityColumn) => entityColumn.isHidden !== true)
       .map((entityColumn: IEntityColumn) => {
         return {
-            key: entityColumn.name,
-            name: entityColumn.displayName,
-            fieldName: entityColumn.fieldName,
-            minWidth: Math.abs(entityColumn.width - margin),
-            maxWidth: Math.abs(entityColumn.width - margin),
-            isRowHeader: true,
-            isResizable: true,
-            isSorted: entityColumn.isSorted,
-            isSortedDescending: entityColumn.isSortedDescending,
-            sortAscendingAriaLabel: 'Sorted A to Z',
-            sortDescendingAriaLabel: 'Sorted Z to A',
-            data: 'string',
-            isPadded: true,
-            onColumnClick: this._onColumnClick,
-            onRender: (item, index, column) => (
-              <TooltipHost id={column?.name + '_tooltip'} content={item[column?.fieldName || '']?.text} overflowMode={TooltipOverflowMode.Parent}>
-                <span aria-describedby={column?.name + '_tooltip'}>
+          key: entityColumn.name,
+          name: entityColumn.displayName,
+          fieldName: entityColumn.fieldName,
+          minWidth: Math.abs(entityColumn.width - margin),
+          maxWidth: Math.abs(entityColumn.width - margin),
+          isRowHeader: true,
+          isResizable: true,
+          isSorted: entityColumn.isSorted,
+          isSortedDescending: entityColumn.isSortedDescending,
+          sortAscendingAriaLabel: 'Sorted A to Z',
+          sortDescendingAriaLabel: 'Sorted Z to A',
+          data: 'string',
+          isPadded: true,
+          onColumnClick: this._onColumnClick,
+          onRender: (item, index, column) => (
+            <TooltipHost id={column?.name + '_tooltip'} content={item[column?.fieldName || '']?.text} overflowMode={TooltipOverflowMode.Parent}>
+              <span aria-describedby={column?.name + '_tooltip'}>
                 <div>
                   {
                     entityColumn.hasLink
-                      ? <Link key={item} onClick={() => { const linkItem = item[column?.fieldName ?? '']; XrmHelper.openForm(linkItem.entityName, linkItem.value); } }>{item[column?.fieldName || '']?.text}</Link>
+                      ? <Link key={item} onClick={() => { const linkItem = item[column?.fieldName ?? '']; XrmHelper.openForm(linkItem.entityName, linkItem.value); }}>{item[column?.fieldName || '']?.text}</Link>
                       : item[column?.fieldName || '']?.text
                   }
                 </div>
-                </span>
-              </TooltipHost>
-            ),
-          } as IColumn;
+              </span>
+            </TooltipHost>
+          ),
+        } as IColumn;
       });
 
     this.setState({
@@ -206,28 +206,28 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
         items: this._allItems
       });
 
-      if(data === undefined)
+      if (data === undefined)
         return;
 
       const columns = this.state.config.columns;
 
-      data.entities.forEach((data : any) => {
+      data.entities.forEach((data: any) => {
         const entityId = data[columns.find((entityColumn) => entityColumn.isPrimary === true)?.fieldName ?? ''];
 
-        const item : { [key: string]: IDetailsListItem | string } = {
+        const item: { [key: string]: IDetailsListItem | string } = {
           key: entityId
         };
 
-        this._columns.forEach((column : IColumn) => {
+        this._columns.forEach((column: IColumn) => {
           const metaColumn = columns.find((entityColumn) => entityColumn.fieldName === column.fieldName);
-          if(!metaColumn) { throw new Error('meta column not found'); }
+          if (!metaColumn) { throw new Error('meta column not found'); }
 
           const fieldName = column.fieldName ?? column.name;
           const fieldText = data[column.fieldName + ODATA_FORMATTED_POSTFIX] ?? data[fieldName];
           let fieldValue = fieldText;
           let entityName;
 
-          if(metaColumn.hasLink) {
+          if (metaColumn.hasLink) {
             fieldValue = (metaColumn.isLookup === true) ? data[metaColumn.fieldName] : entityId;
             entityName = (metaColumn.isLookup === true) ? data[column.fieldName + ODATA_LOOKUPLOGICALNAME] : this.state.config.entityName;
           }
@@ -239,12 +239,12 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
           } as IDetailsListItem;
         });
 
-        if(this.state.searchValue.length > 0) {
+        if (this.state.searchValue.length > 0) {
           let add = false;
-          for(const name in item) {
+          for (const name in item) {
             add = add || (item[name] as IDetailsListItem).text?.toLowerCase().includes(this.state.searchValue.toLowerCase()) || false;
           }
-          if(add === true) {
+          if (add === true) {
             this._allItems.push(item);
           }
         } else {
@@ -264,21 +264,21 @@ export class FluentUIDetailsList extends React.Component<IDetailsListDocumentsPr
 
   private _onItemInvoked(item: { [key: string]: any }): void {
     const entityName = this.state.config.entityName;
-    if(entityName) {
+    if (entityName) {
       XrmHelper.openForm(entityName, item.key);
     }
   }
 
-  private _onSearch(newValue: string) : void {
+  private _onSearch(newValue: string): void {
     this.setState({
-      searchValue : newValue
+      searchValue: newValue
     });
 
     this.refreshContent();
   }
 
   private _getSelectionKeys(): string[] {
-    const keys : (string | number | undefined)[] = [];
+    const keys: (string | number | undefined)[] = [];
     this._selection.getSelection().forEach((item) => { keys.push(item.key); });
     return keys as string[];
   }

@@ -20,6 +20,7 @@ export interface IConfig {
   title?: string,
   columns: IEntityColumn[],
   allowSearchBox: boolean,
+  allowEditButton: boolean,
   allowAddButton: boolean,
   allowOpenAssociatedRecordsButton: boolean,
   allowRefreshGridViewButton: boolean,
@@ -37,8 +38,10 @@ export interface IEntityViewItem {
 
 export interface IXrmAPI {
   xrm: any,
+  xrmCore: any,
   title?: string,
   allowSearchBox?: boolean,
+  allowEditButton?: boolean,
   allowAddButton?: boolean,
   allowOpenAssociatedRecordsButton?: boolean,
   allowRefreshGridViewButton?: boolean,
@@ -389,6 +392,7 @@ export const XrmHelper = (function () {
         title: _entityTitle,
         columns: _columns ?? [],
         allowSearchBox: _xrmAPI?.allowSearchBox ?? false,
+        allowEditButton: _xrmAPI?.allowEditButton ?? false,
         allowAddButton: _xrmAPI?.allowAddButton ?? false,
         allowOpenAssociatedRecordsButton: _xrmAPI?.allowOpenAssociatedRecordsButton ?? false,
         allowRefreshGridViewButton: _xrmAPI?.allowRefreshGridViewButton ?? false,
@@ -397,6 +401,31 @@ export const XrmHelper = (function () {
         onChangeEntityView: onChangeEntityView,
         commandBarItems: _xrmAPI?.commandBarItems ?? []
       };
+    },
+
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+    * public openQuickEdit : (entityName: string) => void;
+    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    openBulkEdit: (entityName: string) => {
+      if (!(_xrmAPI && _xrmAPI.xrmCore))
+        return undefined;
+
+      if (_selectedItemIDs.length == 1) {
+        const pageUrl = _xrmAPI.xrm.Page.context.getClientUrl();
+        const url = pageUrl + '/main.aspx?etn=' + entityName + '&pagetype=entityrecord&id=' + _selectedItemIDs[0];
+        const newTab = window.open(url, '_blank');
+        newTab?.focus();
+      }
+      else {
+        const selectedReferences: { Id: string; Name: string; }[] = [];
+        _selectedItemIDs.forEach(element => {
+          selectedReferences.push({
+            Id: element,
+            Name: ""
+          });
+        });
+        _xrmAPI.xrmCore.Commands.BulkEdit.bulkEditRecords("", selectedReferences, entityName, function () { return; });
+      }
     },
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 

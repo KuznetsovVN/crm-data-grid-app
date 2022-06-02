@@ -11,20 +11,20 @@ export interface IFluentUIContextualMenuProps {
 
 interface IFluentUIContextualMenuState {
   showContextMenu: boolean,
-  targetPoint: { x : number, y : number },
-  items: {key : string, text? : string, iconProps? : { iconName: string }, itemType?: ContextualMenuItemType}[],
+  targetPoint: { x: number, y: number },
+  items: { key: string, text?: string, iconProps?: { iconName: string }, itemType?: ContextualMenuItemType }[],
 }
 
 initializeIcons();
 
 export class FluentUIContextualMenu extends React.Component<React.PropsWithChildren<IFluentUIContextualMenuProps>, IFluentUIContextualMenuState> {
-  constructor (props:React.PropsWithChildren<IFluentUIContextualMenuProps>) {
+  constructor(props: React.PropsWithChildren<IFluentUIContextualMenuProps>) {
     super(props);
 
     this.state = {
       showContextMenu: false,
-      targetPoint : { x: 0, y: 0 },
-      items : [
+      targetPoint: { x: 0, y: 0 },
+      items: [
         { key: 'open', iconProps: { iconName: 'OpenFile' }, text: 'Открыть' },
         { key: 'openInNewWindow', iconProps: { iconName: 'OpenInNewWindow' }, text: 'Открыть в новом окне' },
         { key: 'divider_1', itemType: ContextualMenuItemType.Divider },
@@ -39,14 +39,14 @@ export class FluentUIContextualMenu extends React.Component<React.PropsWithChild
     const count = this.props.getSelectedCount();
     const items = [];
 
-    if(count > 0) {
-      if(count === 1) {
+    if (count > 0) {
+      if (count === 1) {
         items.push({ key: 'open', iconProps: { iconName: 'OpenFile' }, text: 'Открыть' });
       }
       items.push({ key: 'openInNewWindow', iconProps: { iconName: 'OpenInNewWindow' }, text: 'Открыть в новом окне' });
     }
 
-    if(items.length > 0) {
+    if (items.length > 0) {
       items.push({ key: 'divider_1', itemType: ContextualMenuItemType.Divider });
     }
 
@@ -58,7 +58,7 @@ export class FluentUIContextualMenu extends React.Component<React.PropsWithChild
         x: event.clientX,
         y: event.clientY
       },
-      items : items
+      items: items
     });
   }
 
@@ -72,10 +72,10 @@ export class FluentUIContextualMenu extends React.Component<React.PropsWithChild
     document.removeEventListener("mouseleave", this.onDismissMenu.bind(this));
   }
 
-  onItemClick = (ev : React.MouseEvent<HTMLElement | MouseEvent> | React.KeyboardEvent<HTMLElement> | undefined, item? : IContextualMenuItem | undefined): boolean | void => {
+  onItemClick = (ev: React.MouseEvent<HTMLElement | MouseEvent> | React.KeyboardEvent<HTMLElement> | undefined, item?: IContextualMenuItem | undefined): boolean | void => {
     ev?.preventDefault();
 
-    switch(item?.key) {
+    switch (item?.key) {
       case 'open':
         this.props.onOpen();
         break;
@@ -96,16 +96,16 @@ export class FluentUIContextualMenu extends React.Component<React.PropsWithChild
     });
   }
 
-  render () {
+  render() {
     return (
       <div>
-        { this.state.showContextMenu && <ContextualMenu
+        {this.state.showContextMenu && <ContextualMenu
           target={this.state.targetPoint}
           items={this.state.items}
           onItemClick={this.onItemClick}
           onDismiss={this.onDismissMenu.bind(this)}
           hidden={!this.state.showContextMenu}
-          directionalHint={DirectionalHint.bottomLeftEdge} /> }
+          directionalHint={DirectionalHint.bottomLeftEdge} />}
       </div>
     );
   }
